@@ -1,0 +1,66 @@
+GAME:
+
+	global promena aktualni stav hry:
+		1 - normalni
+		2 - zahrano 7
+		3 - zahrano eso
+		4 - zahrana zmena
+
+	karta reprezentace asi struc s 2 int - int barva, int hodnota
+
+	hrac reprezentace asi struc  - String jmeno, String ip ???, dynamicke pole karty
+
+	MAIN:
+		TAH ?
+			ok:
+				ma jeste karty ?
+					ne - vitez
+					ano - hraje dalsi
+			ne:
+				opakovat tah daneho hrace
+
+	boolean TAH:
+		kontrola co dela:
+			bere kartu:
+				glob stav je 2 ?
+					ne:
+                        LIZ
+					ano:
+                        kontrola odhazovaciho balicku (posledni 4 karty zjistit pocet 7, za kazdou +2)
+                        X krat spustit LIZ
+				zmenit glob stav na 1
+				ukoncit tah
+			zahral kartu:
+                kontrola zahrane karty
+                    zahrana karta není v odhazovacim balicku:
+                        ano - pokracuji
+                        ne - nevalidni tah, konec
+                barva na barvu ?
+                    ano - 	sebrat mu kartu
+                        dat kartu tu odkladaciho baliku
+                        ukoncit tah
+                    ne - jdu dal
+                hodnota na hodnotu ?
+                    ano - 	sebrat mu kartu
+                        je 7 ?
+                            ne - stav na 1
+                            ano - stav na 2
+                        je eso ?
+                            ne - stav na 1
+                            ano - stav na 3
+                        je zmena ?
+                            ne - stav na 1
+                            ano - 	stav na 4
+                                    nejak oznacit na co se meni
+                        dat kartu do odkladaciho baliku
+                        ukoncit tah
+                    ne - jdu dal
+                konec - nevalidni tah
+    LIZ:
+        odebrat 1 kartu z lizaciho balicku a dat hraci
+        byla poslední ?
+            ano - vzit vyhazovaci balicek "zahrát vrchni kartu" a zbytek dat to lizaciho balicku
+                  //TODO zamichat ????
+            ne - nic
+		
+		
