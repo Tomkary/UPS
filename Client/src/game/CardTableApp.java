@@ -61,8 +61,8 @@ class TablePanel extends JPanel {
         int panelHeight = getHeight();
 
         // Calculate table size and position, keeping it centered and proportionate
-        int tableWidth = (int) (panelWidth * 0.75);  // Table takes 75% of panel's width
-        int tableHeight = (int) (panelHeight * 0.6); // Table takes 60% of panel's height
+        int tableWidth = (int) (panelWidth * 0.85);  // Table takes 75% of panel's width
+        int tableHeight = (int) (panelHeight * 0.75); // Table takes 60% of panel's height
         int tableX = (panelWidth - tableWidth) / 2;
         int tableY = (panelHeight - tableHeight) / 2;
 
@@ -81,29 +81,51 @@ class TablePanel extends JPanel {
 
     private void drawCards(Graphics g) {
         // Example of drawing some playing cards on the table
-        String[] cards = {"AS", "10D", "3H", "QC"};  // Ace of Spades, 10 of Diamonds, etc.
+        String[] cards = {"AS", "10D", "3H", "QC","AS", "10D", "3H", "QC", "QC"};  // Ace of Spades, 10 of Diamonds, etc.
 
         // Dynamically resize cards based on the table's size
-        int tableWidth = (int) (getWidth() * 0.75);
-        int tableHeight = (int) (getHeight() * 0.6);
+        int tableWidth = (int) (getWidth() * 0.85);
+        int tableHeight = (int) (getHeight() * 0.75);
         int tableX = (getWidth() - tableWidth) / 2;
         int tableY = (getHeight() - tableHeight) / 2;
 
         // Scale card size relative to the table
-        int cardWidth = tableWidth / 10;  // Card width proportional to table width
+        int tot = tableWidth;
+        if (tableWidth >= tableHeight) {
+        	tot = tableHeight;
+        }
+        else {
+        	tot = tableWidth;
+        }
+        int cardWidth = tot / 8;  // Card width proportional to table width
         int cardHeight = cardWidth * 3 / 2;  // Standard card aspect ratio is 3:2
+        int cardSpace = cardWidth / 3;
 
         // Calculate starting position to center the cards horizontally at the bottom of the table
-        int totalCardWidth = cards.length * cardWidth + (cards.length - 1) * 20;  // Total width of all cards with spacing
+        int daleko = cards.length;
+        if(daleko > 8) {
+        	daleko = 8;
+        }
+        int totalCardWidth = daleko * cardWidth + (daleko - 1) * cardSpace;  // Total width of all cards with spacing
         int startX = tableX + (tableWidth - totalCardWidth) / 2;  // Center cards horizontally
 
         // Position cards at the bottom of the table
-        int cardY = tableY + tableHeight - cardHeight - 20;  // Slight offset from the bottom of the table
+        int cardY = tableY + tableHeight - cardHeight - cardSpace;  // Slight offset from the bottom of the table
 
+       if(cards.length > 8) {
+        	cardY = cardY - cardHeight - 10;
+        }
         // Iterate over cards and draw them
         for (int i = 0; i < cards.length; i++) {
-            int cardX = startX + i * (cardWidth + 20);
-            drawCard(g, cardX, cardY, cardWidth, cardHeight, cards[i]);
+            int cardX = startX + i * (cardWidth + cardSpace);
+            if(i <= 7) {
+            	 drawCard(g, cardX, cardY, cardWidth, cardHeight, cards[i]);
+            }
+            else {
+            	cardX = startX + (i-8) * (cardWidth + cardSpace);
+            	cardY = cardY + cardHeight + 10;
+            	drawCard(g, cardX, cardY, cardWidth, cardHeight, cards[i]);
+            }
         }
     }
 
