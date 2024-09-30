@@ -37,12 +37,14 @@ public class CardTableApp extends JFrame {
 
 class TablePanel extends JPanel {
     private BufferedImage tableTexture;
+    private BufferedImage backTexture;
 
     public TablePanel() {
         setBackground(new Color(39, 119, 20)); // Green background
         try {
             // Load texture for the table
             tableTexture = ImageIO.read(new File("drevos.jpg"));  // Path to the texture file
+            backTexture = ImageIO.read(new File("zed.jpg"));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -66,7 +68,13 @@ class TablePanel extends JPanel {
         int tableX = (panelWidth - tableWidth) / 2;
         int tableY = (panelHeight - tableHeight) / 2;
 
-        // Draw textured table
+        // Draw textured table and back
+        if (backTexture != null) {
+            TexturePaint texturePaint = new TexturePaint(backTexture, new Rectangle(0, 0, getWidth(), getHeight()));
+            Graphics2D g2d = (Graphics2D) g;
+            g2d.setPaint(texturePaint);
+            g2d.fillRect(0, 0, getWidth(), getHeight());
+        }
         if (tableTexture != null) {
             TexturePaint texturePaint = new TexturePaint(tableTexture, new Rectangle(tableX, tableY, tableWidth, tableHeight));
             Graphics2D g2d = (Graphics2D) g;
@@ -90,16 +98,14 @@ class TablePanel extends JPanel {
         int tableY = (getHeight() - tableHeight) / 2;
 
         // Scale card size relative to the table
-        int tot = tableWidth;
-        if (tableWidth >= tableHeight) {
-        	tot = tableHeight;
-        }
-        else {
-        	tot = tableWidth;
-        }
-        int cardWidth = tot / 8;  // Card width proportional to table width
-        int cardHeight = cardWidth * 3 / 2;  // Standard card aspect ratio is 3:2
-        int cardSpace = cardWidth / 3;
+        // Calculate the maximum card width based on available table width
+        int maxCardWidth = tableWidth / (cards.length + 1);  // Adding some padding between cards
+
+        // Calculate the maximum card height based on available table height (e.g., max 20% of table height)
+        int maxCardHeight = tableHeight / 5;  // Cards should not exceed 20% of table height
+        int cardWidth = Math.min(maxCardWidth, maxCardHeight * 2 / 3);
+        int cardHeight = cardWidth * 3 / 2;
+        int cardSpace = cardWidth / 6;
 
         // Calculate starting position to center the cards horizontally at the bottom of the table
         int daleko = cards.length;
@@ -122,14 +128,17 @@ class TablePanel extends JPanel {
             	 drawCard(g, cardX, cardY, cardWidth, cardHeight, cards[i]);
             }
             else {
+            	if(i == 8) {
+            		cardY = cardY + cardHeight + 10;
+            	}
             	cardX = startX + (i-8) * (cardWidth + cardSpace);
-            	cardY = cardY + cardHeight + 10;
             	drawCard(g, cardX, cardY, cardWidth, cardHeight, cards[i]);
             }
         }
     }
 
     private void drawCard(Graphics g, int x, int y, int width, int height, String card) {
+    	/*
         // Draw card background
         g.setColor(Color.WHITE);
         g.fillRoundRect(x, y, width, height, 10, 10);
@@ -141,5 +150,32 @@ class TablePanel extends JPanel {
         // Draw card rank and suit in the top left corner
         g.setFont(new Font("SansSerif", Font.BOLD, width / 5));  // Font size scales with card size
         g.drawString(card, x + 10, y + 25);
+        */
+    	BufferedImage cardTexture = null;
+    	try {
+			cardTexture = ImageIO.read(new File("kar.png"));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	if (cardTexture != null) {
+	    	TexturePaint texturePaint = new TexturePaint(cardTexture, new Rectangle(x, y, width, height));
+	        Graphics2D g2d = (Graphics2D) g;
+	        g2d.setPaint(texturePaint);
+	        g2d.fillRect(x, y, width, height);
+    	}
+    	else {
+    		 g.setColor(Color.WHITE);
+    	        g.fillRoundRect(x, y, width, height, 10, 10);
+
+    	        // Draw card border
+    	        g.setColor(Color.BLACK);
+    	        g.drawRoundRect(x, y, width, height, 10, 10);
+
+    	        // Draw card rank and suit in the top left corner
+    	        g.setFont(new Font("SansSerif", Font.BOLD, width / 5));  // Font size scales with card size
+    	        g.drawString(card, x + 10, y + 25);
+    	}
+    	
     }
 }
