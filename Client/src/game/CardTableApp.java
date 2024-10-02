@@ -2,9 +2,14 @@ package game;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+
 import javax.imageio.ImageIO;
 
 public class CardTableApp extends JFrame {
@@ -28,6 +33,7 @@ public class CardTableApp extends JFrame {
         setSize(800, 600);
         setLocationRelativeTo(null);  // Center the window
         setVisible(true);
+        
     }
 
     public static void main(String[] args) {
@@ -42,6 +48,9 @@ class TablePanel extends JPanel {
     private BufferedImage[][] cardTexture = new BufferedImage[4][8];
     private BufferedImage[] colorTexture = new BufferedImage[4];
     private CustomButton button;
+ // Store card positions for click detection
+    private ArrayList cardPositions = new ArrayList();
+    private String[] cards = {"1_2", "2_5", "3_4", "1_7","2_4", "4_8", "3_8", "4_3", "1_5"};  // Cards on the table
 
     public TablePanel() {
         setBackground(new Color(39, 119, 20)); // Green background
@@ -55,6 +64,26 @@ class TablePanel extends JPanel {
         // Add the button to the panel
         add(button);
         prepTexture();
+        
+        // Add mouse listener for card click detection
+        this.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                handleCardClick(e.getX(), e.getY());
+            }
+        });
+    }
+    
+    private void handleCardClick(int mouseX, int mouseY) {
+        // Iterate through card positions to check if a card was clicked
+        for (int i = 0; i < cardPositions.size(); i++) {
+            Rectangle cardBounds = (Rectangle) cardPositions.get(i);
+            if (cardBounds.contains(mouseX, mouseY)) {
+                System.out.println("Clicked on card: " + cards[i]);
+                // You can add additional logic here, e.g., highlight the card or take some action.
+                break;
+            }
+        }
     }
 
     @Override
@@ -62,7 +91,7 @@ class TablePanel extends JPanel {
         super.paintComponent(g);
         drawTable(g);
         drawCards(g);
-        drawMech(g);
+      //  drawMech(g);
     }
     
     private void prepTexture() {
@@ -142,7 +171,7 @@ class TablePanel extends JPanel {
 
     private void drawCards(Graphics g) {
         // Example of drawing some playing cards on the table
-        String[] cards = {"1_2", "2_5", "3_4", "1_7","2_4", "4_8", "3_8", "4_3", "1_5"};  // Ace of Spades, 10 of Diamonds, etc.
+        //String[] cards = {"1_2", "2_5", "3_4", "1_7","2_4", "4_8", "3_8", "4_3", "1_5"};  // Ace of Spades, 10 of Diamonds, etc.
         String playedCard = "2_7";
 
         // Dynamically resize cards based on the table's size
@@ -193,6 +222,7 @@ class TablePanel extends JPanel {
             	cardX = startX + (i-8) * (cardWidth + cardSpace);
             	drawCard(g, cardX, cardY, cardWidth, cardHeight, cards[i]);
             }
+            cardPositions.add(new Rectangle(cardX, cardY, cardWidth, cardHeight));  // Save the card's bounds
         }
     }
     
