@@ -1,58 +1,47 @@
 package game;
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.TexturePaint;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-
+import java.util.List;
 import javax.imageio.ImageIO;
+import javax.swing.JButton;
+import javax.swing.JPanel;
 
-public class CardTableApp extends JFrame {
-    public CardTableApp() {
-        // Set the title and default close operation
-        super("Card Table");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-        // Set the system's look and feel for dark/light mode support
-        try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        // Create the custom table panel
-        TablePanel tablePanel = new TablePanel();
-        add(tablePanel);
-
-        // Set the window size
-        setSize(800, 600);
-        setLocationRelativeTo(null);  // Center the window
-        setVisible(true);
-        
-    }
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new CardTableApp());
-    }
-}
-
-class TablePanel extends JPanel {
-    private BufferedImage tableTexture;
+public class GameWindow extends JPanel{
+	private BufferedImage tableTexture;
     private BufferedImage backTexture;
     private BufferedImage backCard;
     private BufferedImage[][] cardTexture = new BufferedImage[4][8];
     private BufferedImage[] colorTexture = new BufferedImage[4];
     private CustomButton button;
  // Store card positions for click detection
-    private ArrayList cardPositions = new ArrayList();
-    private String[] cards = {"1_2", "2_5", "3_4", "1_7","2_4", "4_8", "3_8", "4_3", "1_5"};  // Cards on the table
+    private List<Card> cards = new ArrayList<>();
+    private Card playedCard = new Card("4_5",0,0,0,0);
+    private Card deck = new Card("deck",0,0,0,0);
+    //
+    private Rectangle[] colors = new Rectangle[4];
+   // private String[] cards = {"1_2", "2_5", "3_4", "1_7","2_4", "4_8", "3_8", "4_3", "1_5"};  // Cards on the table
+    
+    
+    private boolean drag = false;
+    double dragx;
+	double dragy;
+	Card draging;
 
-    public TablePanel() {
+    public GameWindow() {
         setBackground(new Color(39, 119, 20)); // Green background
         
         // Create the custom button with textures
@@ -65,33 +54,154 @@ class TablePanel extends JPanel {
         add(button);
         prepTexture();
         
+        String[] cards = {"1_2", "2_5", "3_4", "1_7","2_4", "4_8", "3_8", "4_3"};
+        createCards(cards);
+        
         // Add mouse listener for card click detection
         this.addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseClicked(MouseEvent e) {
+            public void mousePressed(MouseEvent e) {
+            	if(isOnDeck(e.getX(), e.getY())) {
+            		System.out.println("Deck is hit");
+            	}
                 handleCardClick(e.getX(), e.getY());
             }
+            
+            @Override
+            public void mouseClicked(MouseEvent e) {
+            	int color = clickedColor(e.getX(), e.getY());
+            	if(color < 5) {
+            		System.out.println("change color to: " + color);
+            	}
+            }
+            
+            @Override
+			public void mouseReleased(MouseEvent e) {
+            	if(draging != null) {
+            		if(!isOnPlayCard(e.getX(), e.getY())) {
+            			returnDrag();
+            		}
+					draging = null;
+            	}
+				repaint();
+				
+		}
+        });
+        
+        this.addMouseMotionListener(new MouseMotionListener() {
+        	
+        	/**
+        	 * Metoda spoustejici drag
+        	 * @param e MouseEvent
+        	 */
+			@Override
+			public void mouseDragged(MouseEvent e) {
+				if(draging != null) {
+						Drag(e.getX(), e.getY(), draging);
+						repaint();
+				}			
+			}
+			/**
+			 * Metoda nevyuzita
+			 */
+			@Override
+			public void mouseMoved(MouseEvent e) {
+				
+			}
         });
     }
     
+    private void createCards(String[] cards) {
+    	for (int i = 0; i < cards.length; i++) {
+    		this.cards.add(new Card(cards[i],0,0,0,0));
+    	}
+	}
+
+	public void Drag(double x, double y, Card drag) {
+		this.drag = true;
+		this.dragx = x;
+		this.dragy = y;
+
+	}
+	
+	public boolean isOnPlayCard(int mouseX, int mouseY){
+		if(playedCard.contains(mouseX, mouseY)) {
+			return true;
+		}
+		return false;
+	}
+	
+	public boolean isOnDeck(int mouseX, int mouseY){
+		if(deck.contains(mouseX, mouseY)) {
+			return true;
+		}
+		return false;
+	}
+	
+	public int clickedColor(int mouseX, int mouseY) {
+		for(int i = 0; i < 4; i++) {
+			if(colors[i].contains(mouseX, mouseY)) {
+				return i + 1;
+			}
+		}
+		return 5;
+	}
+	
+	public void removeDrag(){
+		for (int i = 0; i < cards.size(); i++) {
+            Card card = cards.get(i);
+            if (card.equals(draging)) {
+                cards.remove(i);
+                break;
+            }
+        }
+	}
+	
+	public void returnDrag() {
+		cards.add(draging);
+	}
+    
     private void handleCardClick(int mouseX, int mouseY) {
         // Iterate through card positions to check if a card was clicked
-        for (int i = 0; i < cardPositions.size(); i++) {
-            Rectangle cardBounds = (Rectangle) cardPositions.get(i);
-            if (cardBounds.contains(mouseX, mouseY)) {
-                System.out.println("Clicked on card: " + cards[i]);
+        for (int i = 0; i < cards.size(); i++) {
+            Card card = cards.get(i);
+            if (card.contains(mouseX, mouseY)) {
+                System.out.println("Clicked on card: " + card.getName());
+                draging = card;
+                removeDrag();
                 // You can add additional logic here, e.g., highlight the card or take some action.
                 break;
             }
         }
+        
     }
 
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         drawTable(g);
+        drawMech(g);
         drawCards(g);
-      //  drawMech(g);
+        
+        Graphics2D g2 = (Graphics2D)g;
+        
+        if(this.drag) {
+        	if(this.draging != null) {
+        		drawDrag(g, (int)dragx - draging.getWidth() / 2, (int)dragy - draging.getHeight() / 2, draging.getWidth(), draging.getHeight(), draging);
+        	}
+			this.drag = false;
+		}
+    }
+    
+    private void drawDrag(Graphics g, int x, int y, int width, int height, Card card) {
+    	String[] split = card.getName().split("_");
+    	int i = Integer.parseInt(split[0]);
+    	int j = Integer.parseInt(split[1]);
+    	
+	    Graphics2D g2d = (Graphics2D) g;
+	    g2d.setPaint(new TexturePaint(cardTexture[i-1][j-1], new Rectangle(x, y, width, height)));
+	    g2d.fillRect(x, y, width, height);
+
     }
     
     private void prepTexture() {
@@ -105,10 +215,12 @@ class TablePanel extends JPanel {
             		 cardTexture[i-1][j-1] = ImageIO.read(new File("Textures/"+i+"_"+j+".jpg"));
             	 }
             	 colorTexture[i-1] = ImageIO.read(new File("Textures/ch_"+i+".jpg"));
+            	 colors[i-1] = new Rectangle();
              }
          } catch (IOException e) {
              e.printStackTrace();
          }
+
     	 
     }
     
@@ -117,7 +229,7 @@ class TablePanel extends JPanel {
     	 changeColor(g);
          
     }
-
+    
     private void drawTable(Graphics g) {
         // Get current panel dimensions
         int panelWidth = getWidth();
@@ -172,7 +284,6 @@ class TablePanel extends JPanel {
     private void drawCards(Graphics g) {
         // Example of drawing some playing cards on the table
         //String[] cards = {"1_2", "2_5", "3_4", "1_7","2_4", "4_8", "3_8", "4_3", "1_5"};  // Ace of Spades, 10 of Diamonds, etc.
-        String playedCard = "2_7";
 
         // Dynamically resize cards based on the table's size
         int tableWidth = (int) (getWidth() * 0.85);
@@ -182,7 +293,7 @@ class TablePanel extends JPanel {
 
         // Scale card size relative to the table
         // Calculate the maximum card width based on available table width
-        int maxCardWidth = tableWidth / (cards.length + 1);  // Adding some padding between cards
+        int maxCardWidth = tableWidth / (cards.size() + 1);  // Adding some padding between cards
 
         // Calculate the maximum card height based on available table height (e.g., max 20% of table height)
         int maxCardHeight = tableHeight / 5;  // Cards should not exceed 20% of table height
@@ -191,7 +302,7 @@ class TablePanel extends JPanel {
         int cardSpace = cardWidth / 6;
 
         // Calculate starting position to center the cards horizontally at the bottom of the table
-        int daleko = cards.length;
+        int daleko = cards.size();
         if(daleko > 8) {
         	daleko = 8;
         }
@@ -203,26 +314,28 @@ class TablePanel extends JPanel {
 
         //last played card
         drawCard(g,tableX+(tableWidth/2)-(3*cardWidth/2),tableY+cardHeight,cardWidth,cardHeight,playedCard);
+
         //card deck
         drawDeck(g,cardWidth,cardHeight,tableX+(tableWidth/2)+cardWidth/2,tableY+cardHeight);
         
-        if(cards.length > 8) {
+        if(cards.size() > 8) {
         	cardY = cardY - cardHeight - 10;
         }
         // Iterate over cards and draw them
-        for (int i = 0; i < cards.length; i++) {
+        for (int i = 0; i < cards.size(); i++) {
             int cardX = startX + i * (cardWidth + cardSpace);
             if(i <= 7) {
-            	 drawCard(g, cardX, cardY, cardWidth, cardHeight, cards[i]);
+            	 drawCard(g, cardX, cardY, cardWidth, cardHeight, cards.get(i));
             }
             else {
             	if(i == 8) {
             		cardY = cardY + cardHeight + 10;
             	}
             	cardX = startX + (i-8) * (cardWidth + cardSpace);
-            	drawCard(g, cardX, cardY, cardWidth, cardHeight, cards[i]);
+            	drawCard(g, cardX, cardY, cardWidth, cardHeight, cards.get(i));
             }
-            cardPositions.add(new Rectangle(cardX, cardY, cardWidth, cardHeight));  // Save the card's bounds
+            
+            //cards.add(new Card(cardX, cardY, cardWidth, cardHeight));  // Save the card's bounds
         }
     }
     
@@ -241,11 +354,17 @@ class TablePanel extends JPanel {
     	     g.setColor(Color.BLACK);
     	     g.drawRoundRect(x, y, width, height, 10, 10);
     	}
+    	
+    	//update card
+        deck.setHeight(height);
+        deck.setWidth(width);
+        deck.setPosX(x);
+        deck.setPosY(y);
     }
 
-    private void drawCard(Graphics g, int x, int y, int width, int height, String card) {
+    private void drawCard(Graphics g, int x, int y, int width, int height, Card card) {
 
-    	String[] split = card.split("_");
+    	String[] split = card.getName().split("_");
     	int i = Integer.parseInt(split[0]);
     	int j = Integer.parseInt(split[1]);
     	
@@ -265,8 +384,14 @@ class TablePanel extends JPanel {
 
     	        // Draw card rank and suit in the top left corner
     	        g.setFont(new Font("SansSerif", Font.BOLD, width / 5));  // Font size scales with card size
-    	        g.drawString(card, x + 10, y + 25);
+    	        g.drawString(card.getName(), x + 10, y + 25);
     	}
+    	
+    	//update card
+        card.setHeight(height);
+        card.setWidth(width);
+        card.setPosX(x);
+        card.setPosY(y);
     	
     }
     
@@ -302,6 +427,7 @@ class TablePanel extends JPanel {
 	            g.setColor(Color.BLACK);
 	            g.drawRoundRect(x, y, width, height, 10, 10);
         	}
+        	colors[i].setBounds(x, y, width, height);
         	x += 3*width/2;
         }
     	
