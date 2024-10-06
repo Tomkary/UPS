@@ -1,12 +1,14 @@
 package game;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.Stroke;
 import java.awt.TexturePaint;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -17,22 +19,27 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.imageio.ImageIO;
-import javax.swing.JButton;
 import javax.swing.JPanel;
 
 public class GameWindow extends JPanel{
 	private BufferedImage tableTexture;
     private BufferedImage backTexture;
     private BufferedImage backCard;
+    private BufferedImage backgroundTexture;
+    private BufferedImage textTexture;
     private BufferedImage[][] cardTexture = new BufferedImage[4][8];
     private BufferedImage[] colorTexture = new BufferedImage[4];
-    private CustomButton button;
+    //private CustomButton button;
+    
+    private List<Player> players = new ArrayList<>();
  // Store card positions for click detection
     private List<Card> cards = new ArrayList<>();
     private Card playedCard = new Card("4_5",0,0,0,0);
     private Card deck = new Card("deck",0,0,0,0);
     //
     private Rectangle[] colors = new Rectangle[4];
+    
+    private Rectangle button = new Rectangle();
    // private String[] cards = {"1_2", "2_5", "3_4", "1_7","2_4", "4_8", "3_8", "4_3", "1_5"};  // Cards on the table
     
     
@@ -42,18 +49,17 @@ public class GameWindow extends JPanel{
 	Card draging;
 
     public GameWindow() {
-        setBackground(new Color(39, 119, 20)); // Green background
+        setBackground(new Color(39, 119, 20)); // Green background   
         
-        // Create the custom button with textures
-        button = new CustomButton("STÁT", "Textures/drev2.jpg", "Textures/drev3.jpg");
-
         // Set layout to null so we can manually position the button
         setLayout(null);
 
-        // Add the button to the panel
-        add(button);
         prepTexture();
         
+        players.add(new Player("Honza", 4, 1));
+        players.add(new Player("Jirka", 4, 1));
+        players.add(new Player("Pepa", 4, 1));
+        players.add(new Player("Tomáš", 4, 1));
         String[] cards = {"1_2", "2_5", "3_4", "1_7","2_4", "4_8", "3_8", "4_3"};
         createCards(cards);
         
@@ -73,6 +79,9 @@ public class GameWindow extends JPanel{
             	if(color < 5) {
             		System.out.println("change color to: " + color);
             	}
+            	if(hitStay(e.getX(), e.getY())) {
+            		System.out.println("Stojim tu");
+            	}
             }
             
             @Override
@@ -80,6 +89,9 @@ public class GameWindow extends JPanel{
             	if(draging != null) {
             		if(!isOnPlayCard(e.getX(), e.getY())) {
             			returnDrag();
+            		}
+            		else {
+            			System.out.println("played card: " + draging.getName());
             		}
 					draging = null;
             	}
@@ -138,6 +150,13 @@ public class GameWindow extends JPanel{
 		return false;
 	}
 	
+	public boolean hitStay(int mouseX, int mouseY) {
+		if(button.contains(mouseX, mouseY)) {
+			return true;
+		}
+		return false;
+	}
+	
 	public int clickedColor(int mouseX, int mouseY) {
 		for(int i = 0; i < 4; i++) {
 			if(colors[i].contains(mouseX, mouseY)) {
@@ -179,11 +198,12 @@ public class GameWindow extends JPanel{
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
+        Graphics2D g2d = (Graphics2D) g;
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        
         drawTable(g);
         drawMech(g);
         drawCards(g);
-        
-        Graphics2D g2 = (Graphics2D)g;
         
         if(this.drag) {
         	if(this.draging != null) {
@@ -210,6 +230,8 @@ public class GameWindow extends JPanel{
              tableTexture = ImageIO.read(new File("Textures/drevos.jpg"));  // Path to the texture file
              backTexture = ImageIO.read(new File("Textures/zed.jpg"));
              backCard = ImageIO.read(new File("Textures/back.jpg"));
+             backgroundTexture = ImageIO.read(new File("Textures/drev2.jpg"));  // Background texture
+             textTexture = ImageIO.read(new File("Textures/drev3.jpg"));  // Text texture
              for(int i = 1; i < 5; i++) {
             	 for(int j = 1; j < 9; j++) {
             		 cardTexture[i-1][j-1] = ImageIO.read(new File("Textures/"+i+"_"+j+".jpg"));
@@ -225,8 +247,9 @@ public class GameWindow extends JPanel{
     }
     
     private void drawMech(Graphics g) {
-    	 resizeAndPlaceButton();
+    	 drawButton(g);
     	 changeColor(g);
+    	 listPlayers(g);
          
     }
     
@@ -253,13 +276,15 @@ public class GameWindow extends JPanel{
             Graphics2D g2d = (Graphics2D) g;
             g2d.setPaint(texturePaint);
             g2d.fillRect(tableX, tableY, tableWidth, tableHeight);
+            g2d.setColor(Color.DARK_GRAY);
+            g2d.drawRect(tableX, tableY, tableWidth, tableHeight);
         } else {
             // Fallback if texture is not loaded
             g.setColor(new Color(100, 50, 20));  // Brown color for the table
             g.fillRect(tableX, tableY, tableWidth, tableHeight);  // Table position and size
         }
     }
-    
+ /*   
     private void resizeAndPlaceButton() {
         // Get current panel dimensions
         int panelWidth = getWidth();
@@ -280,7 +305,7 @@ public class GameWindow extends JPanel{
         // Set button's bounds dynamically
         button.setBounds(buttonX, buttonY, buttonWidth, buttonHeight);
     }
-
+*/
     private void drawCards(Graphics g) {
         // Example of drawing some playing cards on the table
         //String[] cards = {"1_2", "2_5", "3_4", "1_7","2_4", "4_8", "3_8", "4_3", "1_5"};  // Ace of Spades, 10 of Diamonds, etc.
@@ -310,7 +335,7 @@ public class GameWindow extends JPanel{
         int startX = tableX + (tableWidth - totalCardWidth) / 2;  // Center cards horizontally
 
         // Position cards at the bottom of the table
-        int cardY = tableY + tableHeight - cardHeight - cardSpace;  // Slight offset from the bottom of the table
+        int cardY = tableY + tableHeight - cardHeight - cardSpace * 2;  // Slight offset from the bottom of the table
 
         //last played card
         drawCard(g,tableX+(tableWidth/2)-(3*cardWidth/2),tableY+cardHeight,cardWidth,cardHeight,playedCard);
@@ -432,8 +457,78 @@ public class GameWindow extends JPanel{
         }
     	
     }
-}
+    
+    public void drawButton(Graphics g) {
 
+    	 Graphics2D g2d = (Graphics2D) g;
+    	 int panelWidth = getWidth();
+         int panelHeight = getHeight();
+
+         //table size and position
+         int tableWidth = (int) (panelWidth * 0.85); 
+         int tableHeight = (int) (panelHeight * 0.75); 
+         int tableX = (panelWidth - tableWidth) / 2;
+         int tableY = (panelHeight - tableHeight) / 2;
+
+         //button dimensions
+         int buttonWidth = tableWidth/8;
+         int buttonHeight = tableHeight/12;
+         int buttonX = tableX + (2*tableWidth/3);
+         int buttonY = tableY + 1*tableHeight/4;
+         
+         button.setRect(buttonX, buttonY, buttonWidth, buttonHeight);
+         
+         if (backgroundTexture != null) {
+        	 //draw button
+             TexturePaint texturePaint = new TexturePaint(backgroundTexture, new Rectangle(0, 0, getWidth(), getHeight()));
+             g2d.setPaint(texturePaint);
+             g2d.fillRoundRect(buttonX, buttonY, buttonWidth, buttonHeight, 20, 20);
+             g2d.setColor(new Color(33, 32, 32));
+             g2d.setStroke(new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
+	         g2d.drawRoundRect(buttonX, buttonY, buttonWidth, buttonHeight, 20, 20);
+	         
+	         //darw text
+	         String text = "Stát";
+	         int fontSize = buttonWidth / 6;
+	         g2d.setFont(new Font("SansSerif", Font.BOLD, fontSize));
+	         FontMetrics fm = g2d.getFontMetrics();
+	         int textX = buttonX + ((buttonWidth - fm.stringWidth(text)) / 2);
+	         int textY = buttonY + ((buttonHeight + fm.getAscent()) / 2 - fm.getDescent());
+	         g2d.drawString(text, textX, textY);
+         }
+    }
+    
+    public void listPlayers(Graphics g) {
+    	
+    	Graphics2D g2d = (Graphics2D) g;
+    	int listHeight = getHeight() / 15;
+    	int listWidth = getWidth() - 20;
+    	int listX = 10;
+    	int listY = 10;
+    	
+    	g2d.setColor(new Color(209, 209, 209));
+    	g2d.fillRoundRect(listX, listY, listWidth, listHeight, 20, 20);
+    	g2d.setColor(new Color(33, 32, 32));
+        g2d.setStroke(new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
+        g2d.drawRoundRect(listX, listY, listWidth, listHeight, 20, 20);
+        
+        int textX = listX;
+        int textY = listY;
+        int spacing = 20;
+        for (int i = 0; i < players.size(); i++) {
+            Player player = players.get(i);
+            String text = "| "+player.getName()+" ("+player.getCardCount()+") - Status: ("+player.getStatus()+") |";
+	        int fontSize = listWidth / 100;
+	        g2d.setFont(new Font("SansSerif", Font.BOLD, fontSize));
+	        FontMetrics fm = g2d.getFontMetrics();
+	        textX = textX + spacing;
+	        textY = listY + ((listHeight + fm.getAscent()) / 2 - fm.getDescent());
+	        g2d.drawString(text, textX, textY);
+	        textX = textX + fm.stringWidth(text);
+        }
+    }
+}
+/*
 class CustomButton extends JButton {
     private String text;
     private BufferedImage backgroundTexture;
@@ -490,3 +585,4 @@ class CustomButton extends JButton {
         g.drawRect(0, 0, getWidth() - 1, getHeight() - 1);  // Draw a simple border
     }
 }
+*/

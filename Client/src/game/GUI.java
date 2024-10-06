@@ -19,7 +19,9 @@ public class GUI extends JFrame{
 
         // Create the custom table panel
         GameWindow game = new GameWindow();
-        add(game);
+        LoginWindow login = new LoginWindow();
+        add(login);
+        //add(game);
 
         // Set the window size
         setSize(800, 600);
