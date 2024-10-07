@@ -69,6 +69,7 @@ public class GameWindow extends JPanel{
             public void mousePressed(MouseEvent e) {
             	if(isOnDeck(e.getX(), e.getY())) {
             		System.out.println("Deck is hit");
+            		getCard("4_5");
             	}
                 handleCardClick(e.getX(), e.getY());
             }
@@ -128,6 +129,10 @@ public class GameWindow extends JPanel{
     		this.cards.add(new Card(cards[i],0,0,0,0));
     	}
 	}
+    
+    public void getCard(String card) {
+    	cards.add(new Card(card,0,0,0,0));
+    }
 
 	public void Drag(double x, double y, Card drag) {
 		this.drag = true;
@@ -247,8 +252,8 @@ public class GameWindow extends JPanel{
     }
     
     private void drawMech(Graphics g) {
-    	 drawButton(g);
-    	 changeColor(g);
+    	 //drawButton(g);
+    	 //changeColor(g);
     	 listPlayers(g);
          
     }
@@ -372,12 +377,7 @@ public class GameWindow extends JPanel{
 	        g2d.fillRect(x, y, width, height);
     	}
     	else {
-    		 g.setColor(Color.WHITE);
-    	     g.fillRoundRect(x, y, width, height, 10, 10);
-
-    	     // Draw card border
-    	     g.setColor(Color.BLACK);
-    	     g.drawRoundRect(x, y, width, height, 10, 10);
+    		 //neni textura
     	}
     	
     	//update card
@@ -400,16 +400,7 @@ public class GameWindow extends JPanel{
 	        g2d.fillRect(x, y, width, height);
     	}
     	else {
-    		 g.setColor(Color.WHITE);
-    	        g.fillRoundRect(x, y, width, height, 10, 10);
-
-    	        // Draw card border
-    	        g.setColor(Color.BLACK);
-    	        g.drawRoundRect(x, y, width, height, 10, 10);
-
-    	        // Draw card rank and suit in the top left corner
-    	        g.setFont(new Font("SansSerif", Font.BOLD, width / 5));  // Font size scales with card size
-    	        g.drawString(card.getName(), x + 10, y + 25);
+    		 //neni textura
     	}
     	
     	//update card
@@ -446,11 +437,7 @@ public class GameWindow extends JPanel{
     	        g2d.fillRect(x, y, width, height);
         	}
         	else {
-	        	g.setColor(Color.WHITE);
-	            g.fillRoundRect(x, y, width, height, 10, 10);
-	
-	            g.setColor(Color.BLACK);
-	            g.drawRoundRect(x, y, width, height, 10, 10);
+	        	//neni textura
         	}
         	colors[i].setBounds(x, y, width, height);
         	x += 3*width/2;

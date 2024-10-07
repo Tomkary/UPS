@@ -5,6 +5,13 @@ GAME:
 		2 - zahrano 7
 		3 - zahrano eso
 		4 - zahrana zmena
+		
+	globalni promena barva zmeny:
+		0 - normalni stav
+		1 - nastavi se pri nastaveni stavu 4 pokud menil na 1
+		2 - nastavi se pri nastaveni stavu 4 pokud menil na 2
+		3 - nastavi se pri nastaveni stavu 4 pokud menil na 3
+		4 - nastavi se pri nastaveni stavu 4 pokud menil na 4
 
 	karta reprezentace asi struc s 2 int - int barva, int hodnota
 
@@ -60,6 +67,17 @@ GAME:
                         ukoncit tah
                     ne:
                         pokracuji
+                je stav 4 ?
+                	ano:
+                		je karta barvy jako nastavena glob promena ?
+                			ano:
+                				sebrat mu kartu
+                            	stav na 1
+                           		dat kartu tu odkladaciho baliku
+                            	ukoncit tah
+                            ne: nevalidni tah, konec
+                	ne: 
+                		pokracuji
                 barva na barvu ?
                     ano - 	sebrat mu kartu
                             stav na 1
