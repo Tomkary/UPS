@@ -21,9 +21,9 @@ public class GUI extends JFrame{
         GameWindow game = new GameWindow();
         LoginWindow login = new LoginWindow();
         LobbyWindow lobby = new LobbyWindow();
-       // add(login);
-        add(lobby);
-        //add(game);
+        //add(login);
+        //add(lobby);
+        add(game);
 
         // Set the window size
         setSize(800, 600);
