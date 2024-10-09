@@ -1,0 +1,43 @@
+
+KLIENT + ODPOVEDI
+
+nick|string(nick)\n
+    nick|ok\n
+    nick|err(id)/n
+join|string(room id)\n
+    join|ok|int(player id)\n
+    join|err(id)\n
+room|string(name)\n
+    room|ok\n
+    room|err(id)\n
+leave\n
+    nic
+pause|start\n
+    nic
+pause|end\n
+    status
+//TODO posliat spis turn|ok\n a po nem hned status
+turn|char/int(bere)|\n
+    turn|ok|string[](karty)|stav hry|barva zmeny|posledni karta|dalsi hrac(player id)|\n
+    turn|err(id)\n
+turn|char/int(nehraje)|\n
+    turn|ok|stav hry|barva zmeny|posledni karta|dalsi hrac(player id)|\n
+    turn|err(id)\n
+turn|char/int(hraje)|string(karta)|int(barva zmeny)|\n
+    turn|ok|stav hry|barva zmeny|psoledni karta|dalsi hrac(player id)|\n
+    turn|err(id)\n
+
+
+SERVER
+
+status|hrac/karty/status|stav hry|barva zmeny|posledni karta|dalsi hrac(player id)|\n
+
+start
+
+win|int(player id)\n
+
+pause
+
+
+
+
