@@ -2,6 +2,8 @@ package game;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -18,10 +20,10 @@ public class LobbyWindow extends JPanel {
     // New components
     private JList<String> itemList;
     private JScrollPane scrollPane;
-    private JButton okButton;
-    private JButton cancelButton;
+    private JButton joinButton;
+    private JButton createButton;
 
-    public LobbyWindow() {
+    public LobbyWindow(JFrame mainFrame, JPanel nextWin) {
         setLayout(null); // Absolute positioning
         
         try {
@@ -39,17 +41,46 @@ public class LobbyWindow extends JPanel {
         Random rd = new Random();
         color = rd.nextInt(3) + 1;
 
-        // New components: Scroll list and buttons
-        String[] items = {"Item 1", "Item 2", "Item 3", "Item 4", "Item 5", "Item 1", "Item 2", "Item 3", "Item 4", "Item 5"};
-        itemList = new JList<>(items); // Create the list
+        DefaultListModel<String> listModel = new DefaultListModel<>();
+        listModel.addElement("Item 1");
+        listModel.addElement("Item 2");
+        listModel.addElement("Item 3");
+        listModel.addElement("Item 4");
+        listModel.addElement("Item 5");
+
+        itemList = new JList<>(listModel); // Create the list
         scrollPane = new JScrollPane(itemList); // Make it scrollable
         
-        okButton = new JButton("OK");
-        cancelButton = new JButton("Cancel");
+        joinButton = new JButton("Join");
+        createButton = new JButton("Create");
         
         add(scrollPane); // Add the scroll list
-        add(okButton); // Add the first button
-        add(cancelButton); // Add the second button
+        add(joinButton); // Add the first button
+        add(createButton);
+        
+        
+        // Action for OK button: Print selected item
+        joinButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String selectedItem = itemList.getSelectedValue();
+                if (selectedItem != null) {
+                    System.out.println("Selected item: " + selectedItem);
+                } else {
+                    System.out.println("No item selected");
+                }
+            }
+        });
+
+        // Action for Create button: Add a new item to the list
+        createButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String newItem = "New Item " + (listModel.getSize() + 1); // New item label
+                listModel.addElement(newItem); // Add new item to the model
+                System.out.println("Added new item: " + newItem);
+            }
+        });
     }
 
     @Override
@@ -68,7 +99,7 @@ public class LobbyWindow extends JPanel {
         drawCards(g);
         drawTitle(g);
         drawForm(g);
-        positionFormComponents();  // Position form components on the screen
+        revalidate();
     }
 
     public void drawCards(Graphics g) {
@@ -134,20 +165,14 @@ public class LobbyWindow extends JPanel {
             g2d.setPaint(texturePaint);
             g2d.fillRoundRect(formX, formY, formWidth, formHeight, 20, 20);
         }
-    }
-
-    public void positionFormComponents() {
-        int formWidth = Math.min(getWidth(), getHeight()) / 3;
-        int formHeight = formWidth;
-        int formX = getWidth() / 2 - formWidth / 2;
-        int formY = getHeight() / 2 - formHeight / 4;
-
-        // Set bounds for scroll list and buttons
-        int padding = 20;
+        
+     // Set bounds for scroll list and buttons
+        int padding = formHeight / 8;
         scrollPane.setBounds(formX + padding, formY + padding, formWidth - 2 * padding, formHeight / 2);
         
-        okButton.setBounds(formX + padding, formY + formHeight / 2 + 10 + padding, (formWidth - 3 * padding) / 2, 30);
-        cancelButton.setBounds(formX + (formWidth / 2) + padding / 2, formY + formHeight / 2 + 10 + padding, (formWidth - 3 * padding) / 2, 30);
+        joinButton.setBounds(formX + padding, formY + formHeight - 2 * padding, (formWidth - 3 * padding) / 2, formHeight / 10);
+        createButton.setBounds(formX + formWidth - padding - createButton.getWidth(), formY + formHeight - 2 * padding, (formWidth - 3 * padding) / 2, formHeight / 10);
     }
+
 }
 

@@ -3,13 +3,18 @@ KLIENT + ODPOVEDI
 
 nick|string(nick)\n
     nick|ok\n
-    nick|err(id)/n
+    nick|err(id)\n
 join|string(room id)\n
     join|ok|int(player id)\n
+	lobby
     join|err(id)\n
 room|string(name)\n
     room|ok\n
     room|err(id)\n
+croom|string(name)\n
+	croom|ok\n
+		lobby
+	croom|err(id)\n
 leave\n
     nic
 pause|start\n
@@ -31,6 +36,8 @@ turn|char/int(hraje)|string(karta)|int(barva zmeny)|\n
 SERVER
 
 status|hrac/karty/status|stav hry|barva zmeny|posledni karta|dalsi hrac(player id)|\n
+
+lobby|room[]/n
 
 start
 

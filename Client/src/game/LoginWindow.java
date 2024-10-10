@@ -8,6 +8,8 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.TexturePaint;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -15,6 +17,8 @@ import java.io.IOException;
 import java.util.Random;
 import javax.imageio.ImageIO;
 import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
@@ -31,7 +35,7 @@ public class LoginWindow extends JPanel {
     private JTextField port;
     private JButton login;
 
-    public LoginWindow() {
+    public LoginWindow(JFrame mainFrame, JPanel nextWin) {
     	
     	try {
            background = ImageIO.read(new File("Textures/zed.jpg"));  // Path to the texture file
@@ -62,6 +66,30 @@ public class LoginWindow extends JPanel {
         add(nick);
         add(ip);
         add(login);
+        
+        
+        login.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Check if all text fields are filled
+                if (nick.getText().isEmpty()) {
+                    JOptionPane.showMessageDialog(LoginWindow.this, "Please fill in your nick for the game", "Incomplete Field", JOptionPane.WARNING_MESSAGE);
+                }
+                else if (ip.getText().isEmpty()) {
+                    JOptionPane.showMessageDialog(LoginWindow.this, "Please fill in ip address of the game server", "Incomplete Field", JOptionPane.WARNING_MESSAGE);
+                }
+                else if (port.getText().isEmpty()) {
+                    JOptionPane.showMessageDialog(LoginWindow.this, "Please fill in port to connect to the server", "Incomplete Field", JOptionPane.WARNING_MESSAGE);
+                }
+                else {
+                	mainFrame.getContentPane().removeAll();
+                	mainFrame.add(nextWin);
+                	mainFrame.revalidate();
+                	mainFrame.repaint();
+                }
+            }
+        });
+        
     }
 
     @Override

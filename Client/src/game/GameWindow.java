@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.imageio.ImageIO;
+import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 public class GameWindow extends JPanel{
@@ -61,7 +62,7 @@ public class GameWindow extends JPanel{
 	//dragged card
 	Card draging;
 
-    public GameWindow() {
+    public GameWindow(JFrame mainFrame) {
 
         prepTexture();
         
