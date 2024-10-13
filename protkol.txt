@@ -1,49 +1,79 @@
 
 KLIENT + ODPOVEDI
 
-nick|string(nick)\n
-    nick|ok\n
-    nick|err(id)\n
+//connect to the server
+connect|string(nick)\n
+    connect|ok\n
+    connect|err(id)\n
+
+//connect to the room
 join|string(room id)\n
     join|ok|int(player id)\n
-	lobby
     join|err(id)\n
-room|string(name)\n
-    room|ok\n
-    room|err(id)\n
+
+//crate a new room
 croom|string(name)\n
 	croom|ok\n
 		lobby
 	croom|err(id)\n
+
+//leave room
 leave\n
     nic
-pause|start\n
+
+//pause the game 
+pause|start|int(player id)\n
     nic
-pause|end\n
+
+//end pause
+pause|end|int(player id)\n
     status
-//TODO posliat spis turn|ok\n a po nem hned status
+
+//possible turns
 turn|char/int(bere)|\n
-    turn|ok|string[](karty)|stav hry|barva zmeny|posledni karta|dalsi hrac(player id)|\n
+    turn|ok|string[](karty)\n
+	status
     turn|err(id)\n
 turn|char/int(nehraje)|\n
-    turn|ok|stav hry|barva zmeny|posledni karta|dalsi hrac(player id)|\n
+    turn|ok\n
+	status
     turn|err(id)\n
 turn|char/int(hraje)|string(karta)|int(barva zmeny)|\n
-    turn|ok|stav hry|barva zmeny|psoledni karta|dalsi hrac(player id)|\n
+    turn|ok\n
+	status
     turn|err(id)\n
 
 
 SERVER
 
+//state of the game - stats of each player, next player, last played card, state of the game(what the next trun will look like)
 status|hrac/karty/status|stav hry|barva zmeny|posledni karta|dalsi hrac(player id)|\n
 
+//sends all the avaiable rooms(name, id)
 lobby|room[]/n
 
-start
+//tell players the game started
+start/n
 
+//tell players the game ended and annouce winner
 win|int(player id)\n
 
-pause
+//tell all players that someone paused the game
+pause/n
+
+
+ERRORS
+ID: 
+    1 - failed to connect (server could not create a new player)
+    2 - room is full
+    3 - game already started
+    4 - cannot create room
+    5 - your move is agianst the rules
+    6 - other player is playing
+    7 - game is paused
+    8 -
+    9 -
+    10 - unknown message
 
 
 
