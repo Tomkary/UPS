@@ -15,7 +15,7 @@ GAME:
 
 	karta reprezentace asi struc s 2 int - int barva, int hodnota
 
-	hrac reprezentace asi struc  - String jmeno, String ip ???, dynamicke pole karty
+	hrac reprezentace asi struc  - String jmeno, int id, struct array karty, int stav
     
     hodnoty i barvy pretypovat na inty vzdy
 
@@ -72,10 +72,10 @@ GAME:
                 		je karta barvy jako nastavena glob promena ?
                 			ano:
                 				sebrat mu kartu
-                            	stav na 1
-                           		dat kartu tu odkladaciho baliku
-                            	ukoncit tah
-                            ne: nevalidni tah, konec
+                            			stav na 1
+                           			dat kartu tu odkladaciho baliku
+                            			ukoncit tah
+                            		ne: nevalidni tah, konec
                 	ne: 
                 		pokracuji
                 barva na barvu ?
@@ -103,6 +103,3 @@ GAME:
                   //TODO zamichat ????
             ne - nic
 		
-		
-
-Autor karet: Autor: Countakeshi – Vlastní dílo, CC BY-SA 4.0, https://commons.wikimedia.org/w/index.php?curid=53194574
