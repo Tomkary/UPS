@@ -1,4 +1,0 @@
-#ifndef SERVER_MESSAGE_H
-#define SERVER_MESSAGE_H
-
-#endif //SERVER_MESSAGE_H
