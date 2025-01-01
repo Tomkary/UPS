@@ -8,18 +8,18 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
-import java.awt.Stroke;
 import java.awt.TexturePaint;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import javax.imageio.ImageIO;
+import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 public class GameWindow extends JPanel{
@@ -61,11 +61,35 @@ public class GameWindow extends JPanel{
 	double dragy;
 	//dragged card
 	Card draging;
+	
+	private boolean started = true;
+	
+	JButton paus;
+	JButton leave;
+	
+	private ClientSocket client;
+	
 
-    public GameWindow(JFrame mainFrame) {
+    public GameWindow(JFrame mainFrame, ClientSocket client, BufferedImage[][] cardTexture, BufferedImage[] colorTexture, BufferedImage backgroundTexture, BufferedImage backCard, BufferedImage backTexture, BufferedImage tableTexture) {
 
-        prepTexture();
-        
+    	this.tableTexture = tableTexture;
+    	this.backTexture = backTexture;
+    	this.backCard = backCard;
+    	this.backgroundTexture = backgroundTexture;
+    	this.cardTexture = cardTexture;
+    	this.colorTexture = colorTexture;
+    	
+    	this.client = client;
+    	
+    	for(int i = 1; i < 5; i++) {
+       	 	colors[i-1] = new Rectangle();
+        }
+    	
+    	paus = new JButton("Pause");
+    	leave = new JButton("Leave");
+    	add(paus);
+    	add(leave);
+    	
         players.add(new Player("Honza", 4, 1));
         players.add(new Player("Jirka", 4, 1));
         players.add(new Player("Pepa", 4, 1));
@@ -133,6 +157,20 @@ public class GameWindow extends JPanel{
 			public void mouseMoved(MouseEvent e) {
 				
 			}
+        });
+        
+        leave.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+            	System.out.println("Leave");
+            }
+        });
+        
+        paus.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+            	System.out.println("Pause");
+            }
         });
     }
     
@@ -218,7 +256,11 @@ public class GameWindow extends JPanel{
         Graphics2D g2d = (Graphics2D) g;
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         
-        if(pause == true) {
+        if(started == false) {
+        	drawTable(g);
+            listPlayers(g);   	
+        }
+        else if(pause == true) {
         	drawTable(g);
         	listPlayers(g);
         	drawPause(g);    	
@@ -251,28 +293,7 @@ public class GameWindow extends JPanel{
 	    g2d.fillRect(x, y, width, height);
 
     }
-    
-    private void prepTexture() {
-    	 try {
-             // Load texture for the table
-             tableTexture = ImageIO.read(new File("Textures/drevos.jpg"));  // Path to the texture file
-             backTexture = ImageIO.read(new File("Textures/zed.jpg"));
-             backCard = ImageIO.read(new File("Textures/back.jpg"));
-             backgroundTexture = ImageIO.read(new File("Textures/drev2.jpg"));  // Background texture
-             for(int i = 1; i < 5; i++) {
-            	 for(int j = 1; j < 9; j++) {
-            		 cardTexture[i-1][j-1] = ImageIO.read(new File("Textures/"+i+"_"+j+".jpg"));
-            	 }
-            	 colorTexture[i-1] = ImageIO.read(new File("Textures/ch_"+i+".jpg"));
-            	 colors[i-1] = new Rectangle();
-             }
-         } catch (IOException e) {
-             e.printStackTrace();
-         }
-
-    	 
-    }
-    
+        
     private void drawTable(Graphics g) {
         // Get current panel dimensions
         int panelWidth = getWidth();
@@ -516,6 +537,9 @@ public class GameWindow extends JPanel{
     	g2d.setColor(new Color(33, 32, 32));
         g2d.setStroke(new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
         g2d.drawRoundRect(listX, listY, listWidth, listHeight, 20, 20);
+        
+        paus.setBounds(this.getWidth() - paus.getWidth() - 10 - 20 - leave.getWidth(), 20, listWidth/10, listHeight/2);
+    	leave.setBounds(this.getWidth() - leave.getWidth() - 20, 20, listWidth/10, listHeight/2);
         
         int textX = listX;
         int textY = listY;

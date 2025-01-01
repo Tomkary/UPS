@@ -12,15 +12,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
 import java.util.Random;
-import javax.imageio.ImageIO;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
 public class LoginWindow extends JPanel {
@@ -34,9 +30,17 @@ public class LoginWindow extends JPanel {
     private JTextField ip;
     private JTextField port;
     private JButton login;
+    
+    private ClientSocket client;
 
-    public LoginWindow(JFrame mainFrame, JPanel nextWin) {
+    public LoginWindow(JFrame mainFrame, JPanel nextWin, ClientSocket client, BufferedImage[][] cardTexture, BufferedImage backgroundTexture, BufferedImage backTexture) {
     	
+    	this.cardTexture = cardTexture;
+    	this.form = backgroundTexture;
+    	this.background = backTexture;
+    	
+    	this.client = client;
+    	/*
     	try {
            background = ImageIO.read(new File("Textures/zed.jpg"));  // Path to the texture file
            form = ImageIO.read(new File("Textures/drev2.jpg"));  // Path to the texture file
@@ -48,7 +52,7 @@ public class LoginWindow extends JPanel {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    	
+    	*/
     	Random rd = new Random();
     	color = rd.nextInt(3) + 1;
     	

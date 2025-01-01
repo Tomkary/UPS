@@ -6,10 +6,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
 import java.util.Random;
-import javax.imageio.ImageIO;
+
 
 public class LobbyWindow extends JPanel {
     private BufferedImage background;
@@ -22,10 +20,19 @@ public class LobbyWindow extends JPanel {
     private JScrollPane scrollPane;
     private JButton joinButton;
     private JButton createButton;
+    private JButton disconnect;
+    
+    private ClientSocket client;
 
-    public LobbyWindow(JFrame mainFrame, JPanel nextWin) {
+    public LobbyWindow(JFrame mainFrame, JPanel nextWin, ClientSocket client, BufferedImage[][] cardTexture, BufferedImage backgroundTexture, BufferedImage backTexture) {
         setLayout(null); // Absolute positioning
         
+        this.cardTexture = cardTexture;
+    	this.form = backgroundTexture;
+    	this.background = backTexture;
+    	
+    	this.client = client;
+        /*
         try {
             background = ImageIO.read(new File("Textures/zed.jpg"));  // Path to the texture file
             form = ImageIO.read(new File("Textures/drev2.jpg"));  // Path to the texture file
@@ -37,7 +44,7 @@ public class LobbyWindow extends JPanel {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        
+        */
         Random rd = new Random();
         color = rd.nextInt(3) + 1;
 
@@ -53,10 +60,12 @@ public class LobbyWindow extends JPanel {
         
         joinButton = new JButton("Join");
         createButton = new JButton("Create");
+        disconnect = new JButton("Disconnect");
         
         add(scrollPane); // Add the scroll list
         add(joinButton); // Add the first button
         add(createButton);
+        add(disconnect);
         
         
         // Action for OK button: Print selected item
@@ -66,6 +75,10 @@ public class LobbyWindow extends JPanel {
                 String selectedItem = itemList.getSelectedValue();
                 if (selectedItem != null) {
                     System.out.println("Selected item: " + selectedItem);
+                    mainFrame.getContentPane().removeAll();
+                	mainFrame.add(nextWin);
+                	mainFrame.revalidate();
+                	mainFrame.repaint();
                 } else {
                     System.out.println("No item selected");
                 }
@@ -79,6 +92,13 @@ public class LobbyWindow extends JPanel {
                 String newItem = "New Item " + (listModel.getSize() + 1); // New item label
                 listModel.addElement(newItem); // Add new item to the model
                 System.out.println("Added new item: " + newItem);
+            }
+        });
+        
+        disconnect.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+            	System.out.println("odpoj");
             }
         });
     }
@@ -171,7 +191,8 @@ public class LobbyWindow extends JPanel {
         scrollPane.setBounds(formX + padding, formY + padding, formWidth - 2 * padding, formHeight / 2);
         
         joinButton.setBounds(formX + padding, formY + formHeight - 2 * padding, (formWidth - 3 * padding) / 2, formHeight / 10);
-        createButton.setBounds(formX + formWidth - padding - createButton.getWidth(), formY + formHeight - 2 * padding, (formWidth - 3 * padding) / 2, formHeight / 10);
+        disconnect.setBounds(this.getWidth() / 2 - (formWidth - 5 * padding) / 2, formY - 5 * joinButton.getHeight(), (formWidth - 5 * padding), formHeight / 10);
+        createButton.setBounds(formX + formWidth - padding - joinButton.getWidth(), formY + formHeight - 2 * padding, (formWidth - 3 * padding) / 2, formHeight / 10);
     }
 
 }
