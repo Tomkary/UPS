@@ -37,7 +37,7 @@ public class GameWindow extends JPanel{
     
     //cards, last played card and deck positions
     private List<Card> cards = new ArrayList<>();
-    private Card playedCard = new Card("4_5",0,0,-100,-100);
+    private Card playedCard = new Card("4_8",0,0,-100,-100);
     private Card deck = new Card("deck",0,0,-100,-100);
     
     //positions of the color changing buttons
@@ -68,6 +68,9 @@ public class GameWindow extends JPanel{
 
 	JButton paus;
 	JButton leave;
+	
+	int color = 5;
+	boolean changing = false;
 	
 	private ClientSocket client;
 	
@@ -106,19 +109,27 @@ public class GameWindow extends JPanel{
             public void mousePressed(MouseEvent e) {
             	if(isOnDeck(e.getX(), e.getY())) {
             		System.out.println("Deck is hit");
-            		getCard("4_5");
+            		getCard("4_6");
             	}
                 handleCardClick(e.getX(), e.getY());
             }
             
             @Override
             public void mouseClicked(MouseEvent e) {
-            	int color = clickedColor(e.getX(), e.getY());
+            	color = clickedColor(e.getX(), e.getY());
             	if(color < 5) {
             		System.out.println("change color to: " + color);
+            		color = 5;
+            		changing = false;
+            		for(int i = 0; i < 4; i++) {
+                    	colors[i].setBounds(-100, -100, 0, 0);
+                    }
+            		//playedCard = draging;
             	}
             	if(hitStay(e.getX(), e.getY())) {
             		System.out.println("Stojim tu");
+            		button.setRect(-100, -100, 0, 0);
+            		//repaint();
             	}
             }
             
@@ -130,6 +141,15 @@ public class GameWindow extends JPanel{
             		}
             		else {
             			System.out.println("played card: " + draging.getName());
+            			changing = false;
+            			if(Integer.valueOf(draging.getName().split("_")[1]) == 6) {
+            				changing = true;
+            				repaint();
+            				playedCard = draging;
+            				draging = null;
+            				return;
+            			}
+            			changing = false;
             			playedCard = draging;
             		}
 					draging = null;
@@ -278,7 +298,13 @@ public class GameWindow extends JPanel{
         	drawTable(g);
         	listPlayers(g);
         	drawPause(g);    	
-        }else {
+        }
+        else if(changing) {
+        	changeColor(g);
+        	drawTable(g);
+            listPlayers(g); 
+        }
+        else {
             //drawButton(g);
        	 	//changeColor(g);
         	drawTable(g);
@@ -287,6 +313,14 @@ public class GameWindow extends JPanel{
         	if(state == 4) {		
         		drawNewColor(g, newColor);
         	}
+        }
+        
+        if(Integer.valueOf(playedCard.getName().split("_")[1]) == 8) {
+        	drawButton(g);
+        }
+        
+        if(changing) {
+        	changeColor(g);
         }
         
         if(this.drag) {

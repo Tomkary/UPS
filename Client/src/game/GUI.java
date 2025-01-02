@@ -42,7 +42,7 @@ public class GUI extends JFrame implements Runnable{
         game = new GameWindow(this, client, cardTexture, colorTexture, backgroundTexture, backCard, backTexture, tableTexture);
         lobby = new LobbyWindow(this, game, client, cardTexture, backgroundTexture, backTexture);
         login = new LoginWindow(this, lobby, client, cardTexture, backgroundTexture, backTexture);
-        add(login);
+        add(game);
         //add(lobby);
         //add(game);
 
