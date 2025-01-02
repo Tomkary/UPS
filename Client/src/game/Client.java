@@ -17,7 +17,7 @@ public class Client {
 			e.printStackTrace();
 		}
 		*/
-		client.start();
+		//client.start();
 		gui.run();
 	}
 

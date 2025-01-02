@@ -12,6 +12,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.Random;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -30,6 +31,8 @@ public class LoginWindow extends JPanel {
     private JTextField ip;
     private JTextField port;
     private JButton login;
+    private JFrame mainFrame;
+    private JPanel nextWin;
     
     private ClientSocket client;
 
@@ -38,6 +41,8 @@ public class LoginWindow extends JPanel {
     	this.cardTexture = cardTexture;
     	this.form = backgroundTexture;
     	this.background = backTexture;
+    	this.mainFrame = mainFrame;
+    	this.nextWin = nextWin;
     	
     	this.client = client;
     	/*
@@ -86,10 +91,18 @@ public class LoginWindow extends JPanel {
                     JOptionPane.showMessageDialog(LoginWindow.this, "Please fill in port to connect to the server", "Incomplete Field", JOptionPane.WARNING_MESSAGE);
                 }
                 else {
-                	mainFrame.getContentPane().removeAll();
-                	mainFrame.add(nextWin);
-                	mainFrame.revalidate();
-                	mainFrame.repaint();
+                	String ipAdd = ip.getText();
+                	String serverPort = port.getText();
+                	client.setServerIp(ipAdd);
+                	client.setServerPort(Integer.valueOf(serverPort));
+                	try {
+						client.connect();
+					} catch (IOException e1) {
+						connectionError();
+					}
+                	client.start();
+                	String playerName = nick.getText();
+                	client.sendMessage("connect|"+playerName+"|"+'\n');
                 }
             }
         });
@@ -112,6 +125,25 @@ public class LoginWindow extends JPanel {
         drawCards(g);
         drawTitle(g);
         drawForm(g);
+    }
+    
+    public void invalidName() {
+    	JOptionPane.showMessageDialog(LoginWindow.this,"Connection failed, name already used on server, please use different name and connect again", "Invalid name", JOptionPane.WARNING_MESSAGE);
+    }
+    
+    public void connectionError() {
+    	JOptionPane.showMessageDialog(LoginWindow.this,"Connection failed, please try again", "Connection failed", JOptionPane.WARNING_MESSAGE);
+    }
+    
+    public JPanel getLogin() {
+    	return this;
+    }
+    
+    public void changeLobby() {
+    	mainFrame.getContentPane().removeAll();
+    	mainFrame.add(nextWin);
+    	mainFrame.revalidate();
+    	mainFrame.repaint();
     }
     
     public void drawCards(Graphics g) {

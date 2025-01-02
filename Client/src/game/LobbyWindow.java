@@ -21,8 +21,13 @@ public class LobbyWindow extends JPanel {
     private JButton joinButton;
     private JButton createButton;
     private JButton disconnect;
+    private DefaultListModel<String> rooms = new DefaultListModel<>();
+    private JFrame mainFrame;
+    private JPanel nextWin;
     
     private ClientSocket client;
+    
+    private int myId = 0;
 
     public LobbyWindow(JFrame mainFrame, JPanel nextWin, ClientSocket client, BufferedImage[][] cardTexture, BufferedImage backgroundTexture, BufferedImage backTexture) {
         setLayout(null); // Absolute positioning
@@ -30,6 +35,9 @@ public class LobbyWindow extends JPanel {
         this.cardTexture = cardTexture;
     	this.form = backgroundTexture;
     	this.background = backTexture;
+    	
+    	this.mainFrame = mainFrame;
+    	this.nextWin = nextWin;
     	
     	this.client = client;
         /*
@@ -48,14 +56,13 @@ public class LobbyWindow extends JPanel {
         Random rd = new Random();
         color = rd.nextInt(3) + 1;
 
-        DefaultListModel<String> listModel = new DefaultListModel<>();
-        listModel.addElement("Item 1");
-        listModel.addElement("Item 2");
-        listModel.addElement("Item 3");
-        listModel.addElement("Item 4");
-        listModel.addElement("Item 5");
+        rooms.addElement("Item 1");
+        rooms.addElement("Item 2");
+        rooms.addElement("Item 3");
+        rooms.addElement("Item 4");
+        rooms.addElement("Item 5");
 
-        itemList = new JList<>(listModel); // Create the list
+        itemList = new JList<>(rooms); // Create the list
         scrollPane = new JScrollPane(itemList); // Make it scrollable
         
         joinButton = new JButton("Join");
@@ -74,6 +81,11 @@ public class LobbyWindow extends JPanel {
             public void actionPerformed(ActionEvent e) {
                 String selectedItem = itemList.getSelectedValue();
                 if (selectedItem != null) {
+                	int roomId = Integer.valueOf(selectedItem.split(" ")[1]);
+                	client.sendMessage("join|"+roomId+"|"+myId+"|"+'\n');
+                }
+                /*
+                if (selectedItem != null) {
                     System.out.println("Selected item: " + selectedItem);
                     mainFrame.getContentPane().removeAll();
                 	mainFrame.add(nextWin);
@@ -82,6 +94,7 @@ public class LobbyWindow extends JPanel {
                 } else {
                     System.out.println("No item selected");
                 }
+                */
             }
         });
 
@@ -89,21 +102,72 @@ public class LobbyWindow extends JPanel {
         createButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String newItem = "New Item " + (listModel.getSize() + 1); // New item label
-                listModel.addElement(newItem); // Add new item to the model
+            	/*
+                String newItem = "New Item " + (rooms.getSize() + 1); // New item label
+                rooms.addElement(newItem); // Add new item to the model
                 System.out.println("Added new item: " + newItem);
+                */
+            	client.sendMessage("create|"+'\n');
             }
         });
         
         disconnect.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-            	System.out.println("odpoj");
+            	//System.out.println("odpoj");
+            	client.sendMessage("dis|"+myId+"|"+'\n');
             }
         });
     }
+    
+    public int getMyId() {
+		return myId;
+	}
 
-    @Override
+	public void setMyId(int myId) {
+		this.myId = myId;
+	}
+	
+	public void cannotCreate() {
+		JOptionPane.showMessageDialog(LobbyWindow.this,"Room creation failed, please try again", "Room creation failed", JOptionPane.WARNING_MESSAGE);
+	}
+	
+	public void fullRoom() {
+		JOptionPane.showMessageDialog(LobbyWindow.this,"Room is full, please try different one", "Room full", JOptionPane.WARNING_MESSAGE);
+	}
+	
+	public void gameStarted() {
+		JOptionPane.showMessageDialog(LobbyWindow.this,"Game already started, please try different room", "Game already started", JOptionPane.WARNING_MESSAGE);
+	}
+	
+	public void failJoin() {
+		JOptionPane.showMessageDialog(LobbyWindow.this,"Joining failed, please try again", "Joining romm failed", JOptionPane.WARNING_MESSAGE);
+	}
+	
+	public void deleteRooms() {
+		rooms.removeAllElements();
+	}
+	
+	public void listRoom(int roomId) {
+		rooms.addElement("Room "+ roomId);
+	}
+	
+	public void changePanel(JPanel window) {
+		mainFrame.getContentPane().removeAll();
+    	mainFrame.add(window);
+    	mainFrame.revalidate();
+    	mainFrame.repaint();
+	}
+	
+	public void failDis() {
+		JOptionPane.showMessageDialog(LobbyWindow.this,"Disconnect failed, please try again", "Disconnect failed", JOptionPane.WARNING_MESSAGE);
+	}
+
+    public JPanel getNextWin() {
+		return nextWin;
+	}
+
+	@Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2d = (Graphics2D) g;

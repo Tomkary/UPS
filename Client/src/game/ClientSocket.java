@@ -47,11 +47,110 @@ public class ClientSocket extends Thread {
             System.out.println("Cannot send message. Not connected to the server.");
         }
     }
+
+    public void startPing(int id) {
+        new Thread(() -> {
+            while (running) {
+                try {
+                    Thread.sleep(5000);
+                    sendMessage("ping|"+id+"|\n");
+                } catch (InterruptedException e) {
+                    System.err.println("Ping thread interrupted: " + e.getMessage());
+                }
+            }
+        }).start();
+    }
+
+    public void receiveMessage(String message) {
+        if (message.contains("|")) {
+        	
+            String[] parts = message.split("|");
+
+            if(parts[0].equals("connect")) {
+            	handleConnect(parts);
+            }
+            else if(parts[0].equals("lobby")) {
+            	handleLobby(parts);
+            }
+            else if(parts[0].equals("create")) {
+            	handleCreate(parts);
+            }
+            else if(parts[0].equals("dis")) {
+            	handleDis(parts);
+            }
+            else if(parts[0].equals("join")) {
+            	handleJoin(parts);
+            }
+            
+            
+        } else {
+            System.err.println("Error: Message does not contain the character '|'!");
+        }
+    }
     
-    public void setGUI(GUI gui) {
-    	this.lobby = gui.getLobby();
-    	this.login = gui.getLogin();
-    	this.game = gui.getGame();
+    public void handleConnect(String[] message) {
+    	if(message[1].equals("ok")) {
+    		int id = Integer.valueOf(message[2]);
+    		lobby.setMyId(id);
+    		game.setMyId(id);
+    		login.changeLobby();
+    		startPing(id);
+    	}
+    	else if(message[1].equals("err")) {
+    		if(Integer.valueOf(message[2]) == 1) {
+    			login.invalidName();
+    		}
+    		else {
+    			login.connectionError();
+    		}
+    	}
+    }
+    
+    public void handleLobby(String[] message) {
+    	int rooms = Integer.valueOf(message[1]);
+    	lobby.deleteRooms();
+    	for(int i = 0; i < rooms; i++) {
+    		lobby.listRoom(Integer.valueOf(message[i + 2]));
+    	}
+    	lobby.repaint();
+    }
+    
+    public void handleCreate(String[] message) {
+    	if(message[1].equals("err")) {
+    		if(Integer.valueOf(message[2]) == 5) {
+    			lobby.cannotCreate();
+    		}
+    	}
+    }
+    
+    public void handleDis(String[] message) {
+    	if(message[1].equals("ok")) {
+    		lobby.changePanel(login.getLogin());
+    		running = false;
+    	}
+    	else {
+    		lobby.failDis();
+    	}
+    }
+    
+    public void handleJoin(String[] message) {
+    	if(message[1].equals("ok")) {
+    		game.setStarted(false);
+    		game.setMyId(lobby.getMyId());
+    		lobby.changePanel(lobby.getNextWin());
+    		
+    	}
+    	else if(message[1].equals("err")) {
+    		if(Integer.valueOf(message[2]) == 2) {
+    			lobby.fullRoom();
+    		}
+    		else if(Integer.valueOf(message[2]) == 3) {
+    			lobby.gameStarted();
+    		}
+    		else {
+    			lobby.failJoin();
+    		}
+    	}
     }
 
     @Override
@@ -61,8 +160,11 @@ public class ClientSocket extends Thread {
                 if (in != null) {
                     String serverMessage = in.readLine();
                     if (serverMessage != null) {
-                        System.out.println("Received: " + serverMessage);
+                        receiveMessage(serverMessage);
                     }
+                }
+                if(socket.isClosed()) {
+                	running = false;
                 }
             }
         } catch (IOException e) {
@@ -76,6 +178,28 @@ public class ClientSocket extends Thread {
                 System.err.println("Error during disconnect: " + e.getMessage());
             }
         }
+    }
+    
+    public String getServerIp() {
+		return serverIp;
+	}
+
+	public void setServerIp(String serverIp) {
+		this.serverIp = serverIp;
+	}
+
+	public int getServerPort() {
+		return serverPort;
+	}
+
+	public void setServerPort(int serverPort) {
+		this.serverPort = serverPort;
+	}
+
+	public void setGUI(GUI gui) {
+    	this.lobby = gui.getLobby();
+    	this.login = gui.getLogin();
+    	this.game = gui.getGame();
     }
 }
 

@@ -64,6 +64,8 @@ public class GameWindow extends JPanel{
 	
 	private boolean started = true;
 	
+	private int myId = 0;
+
 	JButton paus;
 	JButton leave;
 	
@@ -174,7 +176,19 @@ public class GameWindow extends JPanel{
         });
     }
     
-    private void createCards(String[] cards) {
+    public int getMyId() {
+		return myId;
+	}
+
+	public void setMyId(int myId) {
+		this.myId = myId;
+	}
+    
+    public void setStarted(boolean started) {
+		this.started = started;
+	}
+
+	private void createCards(String[] cards) {
     	for (int i = 0; i < cards.length; i++) {
     		this.cards.add(new Card(cards[i],0,0,-100,-100));
     	}
