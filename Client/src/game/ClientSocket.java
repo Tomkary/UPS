@@ -102,6 +102,9 @@ public class ClientSocket extends Thread {
             else if(parts[0].equals("rejoin")) {
             	handleRejoin(parts);
             }
+            else if(parts[0].equals("end")) {
+            	handleEnd(parts);
+            }
             else {
             	System.err.println("Error: Message not recognised!");
             }
@@ -110,6 +113,24 @@ public class ClientSocket extends Thread {
         } else {
             System.err.println("Error: Message does not contain the character '|'!");
         }
+    }
+    
+    public void handleRejoin(String[] message) {
+    	//TODO
+    }
+    
+    public void handlePing(String[] message) {
+    	//TODO
+    }
+    
+    public void handleEnd(String[] message) {
+    	lobby.changePanel(lobby);
+    }
+    
+    public void handleWin(String[] message) {
+    	int winId = Integer.valueOf(message[1]);
+    	game.setWinner(winId);
+    	game.repaint();
     }
     
     public void handleStart(String[] message) {

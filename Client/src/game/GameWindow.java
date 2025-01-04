@@ -75,6 +75,8 @@ public class GameWindow extends JPanel{
 	int color = 5;
 	boolean changing = false;
 	
+	int ended = -1;
+	
 	private ClientSocket client;
 	
 
@@ -246,6 +248,15 @@ public class GameWindow extends JPanel{
     	playedCard.setName(card);
     }
     
+    public void setWinner(int id) {
+    	for(int i = 0; i < players.size(); i++) {
+    		if(id == players.get(i).getId()) {
+    			ended = i;
+    			return;
+    		}
+    	}
+    }
+    
     public int getMyId() {
 		return myId;
 	}
@@ -345,14 +356,19 @@ public class GameWindow extends JPanel{
         Graphics2D g2d = (Graphics2D) g;
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         
-        if(started == false) {
+        if(ended != -1) {
+        	drawTable(g);
+        	listPlayers(g);
+        	drawSign(g, "Winner: "+players.get(ended).getName());
+        }
+        else if(started == false) {
         	drawTable(g);
             listPlayers(g);   	
         }
         else if(pause == true) {
         	drawTable(g);
         	listPlayers(g);
-        	drawPause(g);    	
+        	drawSign(g, "PAUSED");    	
         }
         else if(changing) {
         	changeColor(g);
@@ -660,7 +676,7 @@ public class GameWindow extends JPanel{
         }
     }
     
-    public void drawPause(Graphics g) {
+    public void drawSign(Graphics g, String text) {
 
    	 	Graphics2D g2d = (Graphics2D) g;
         //pause panel dimensions
@@ -679,7 +695,7 @@ public class GameWindow extends JPanel{
 	        g2d.drawRoundRect(pauseX, pauseY, pauseWidth, pauseHeight, 20, 20);
 	        
 	      //darw text
-	         String text = "PAUSED";
+	         //String text = "PAUSED";
 	         int fontSize = Math.min(pauseWidth, pauseHeight) / 4;
 	         g2d.setFont(new Font("SansSerif", Font.BOLD, fontSize));
 	         FontMetrics fm = g2d.getFontMetrics();
