@@ -38,6 +38,7 @@ public class GameWindow extends JPanel{
     //cards, last played card and deck positions
     private List<Card> cards = new ArrayList<>();
     private Card playedCard = new Card("4_8",0,0,-100,-100);
+    private Card tempCard = new Card("4_8",0,0,-100,-100);
     private Card deck = new Card("deck",0,0,-100,-100);
     
     //positions of the color changing buttons
@@ -62,9 +63,11 @@ public class GameWindow extends JPanel{
 	//dragged card
 	Card draging;
 	
-	private boolean started = true;
+	private boolean started = false;
 	
 	private int myId = 0;
+	
+	private int nextPlayer;
 
 	JButton paus;
 	JButton leave;
@@ -95,21 +98,22 @@ public class GameWindow extends JPanel{
     	add(paus);
     	add(leave);
     	
-        players.add(new Player("Honza", 4, 1));
-        players.add(new Player("Jirka", 4, 1));
-        players.add(new Player("Pepa", 4, 1));
-        players.add(new Player("Tomáš", 4, 1));
+       // players.add(new Player("Honza", 4, 1));
+       // players.add(new Player("Jirka", 4, 1));
+       // players.add(new Player("Pepa", 4, 1));
+      //  players.add(new Player("Tomáš", 4, 1));
         
-        String[] cards = {"1_2", "2_5", "3_4", "1_7","2_4", "4_8", "3_8", "4_3"};
-        createCards(cards);
+      //  String[] cards = {"1_2", "2_5", "3_4", "1_7","2_4", "4_8", "3_8", "4_3"};
+      //  createCards(cards);
         
         // Add mouse listener for card click detection
         this.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
             	if(isOnDeck(e.getX(), e.getY())) {
-            		System.out.println("Deck is hit");
-            		getCard("4_6");
+            		//System.out.println("Deck is hit");
+            		//getCard("4_6");
+            		client.sendMessage("turn|t|"+myId+"|"+'\n');
             	}
                 handleCardClick(e.getX(), e.getY());
             }
@@ -118,7 +122,9 @@ public class GameWindow extends JPanel{
             public void mouseClicked(MouseEvent e) {
             	color = clickedColor(e.getX(), e.getY());
             	if(color < 5) {
-            		System.out.println("change color to: " + color);
+            		//System.out.println("change color to: " + color);
+            		//client.sendMessage("turn|p|"+playedCard.getName()+"|"+color+"|"+myId+"|"+'\n');
+            		client.sendMessage("turn|p|"+tempCard.getName()+"|"+color+"|"+myId+"|"+'\n');
             		color = 5;
             		changing = false;
             		for(int i = 0; i < 4; i++) {
@@ -127,7 +133,8 @@ public class GameWindow extends JPanel{
             		//playedCard = draging;
             	}
             	if(hitStay(e.getX(), e.getY())) {
-            		System.out.println("Stojim tu");
+            		//System.out.println("Stojim tu");
+            		client.sendMessage("turn|s|"+myId+"|"+'\n');
             		button.setRect(-100, -100, 0, 0);
             		//repaint();
             	}
@@ -140,17 +147,23 @@ public class GameWindow extends JPanel{
             			returnDrag();
             		}
             		else {
-            			System.out.println("played card: " + draging.getName());
+            			//System.out.println("played card: " + draging.getName());
             			changing = false;
             			if(Integer.valueOf(draging.getName().split("_")[1]) == 6) {
             				changing = true;
             				repaint();
-            				playedCard = draging;
+            				//tempCard.setName(playedCard.getName());
+                			//playedCard = draging;
+                			tempCard.setName(draging.getName());
             				draging = null;
             				return;
             			}
             			changing = false;
-            			playedCard = draging;
+            			//tempCard.setName(playedCard.getName());
+            			//playedCard = draging;
+            			tempCard.setName(draging.getName());
+            			//client.sendMessage("turn|p|"+playedCard.getName()+"|0|"+myId+"|"+'\n');
+            			client.sendMessage("turn|p|"+draging.getName()+"|0|"+myId+"|"+'\n');
             		}
 					draging = null;
             	}
@@ -184,7 +197,8 @@ public class GameWindow extends JPanel{
         leave.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-            	System.out.println("Leave");
+            	//System.out.println("Leave");
+            	client.sendMessage("leave|"+myId+"|"+'\n');
             }
         });
         
@@ -196,9 +210,49 @@ public class GameWindow extends JPanel{
         });
     }
     
+    public void returnMove() {
+    	//cards.add(playedCard);
+    	//playedCard.setName(tempCard.getName());
+    	cards.add(tempCard);
+    	this.repaint();
+    }
+    
+    public void play() {
+    	playedCard.setName(tempCard.getName());
+    	color = 5;
+		changing = false;
+		newColor = 0;
+    	this.repaint();
+    }
+    
+    public void updatePlayer(int id, int cards, int state) {
+    	for(int i = 0; i < players.size(); i++) {
+    		if(id == players.get(i).getId()) {
+    			players.get(i).setCardCount(cards);
+    			players.get(i).setStatus(state);
+    			return;
+    		}
+    	}
+    }
+    
+    public void addPlayer(int id, String name) {
+    	players.add(new Player(name, 4, 1, id));
+    }
+    
+    public void statusChange(int status, int color, int next, String card) {
+    	this.state = status;
+    	this.newColor = color;
+    	nextPlayer = next;
+    	playedCard.setName(card);
+    }
+    
     public int getMyId() {
 		return myId;
 	}
+    
+    public void failLeave() {
+    	JOptionPane.showMessageDialog(GameWindow.this,"Leaving room failed, try again", "Cannot leave", JOptionPane.WARNING_MESSAGE);
+    }
 
 	public void setMyId(int myId) {
 		this.myId = myId;
@@ -208,7 +262,7 @@ public class GameWindow extends JPanel{
 		this.started = started;
 	}
 
-	private void createCards(String[] cards) {
+	public void createCards(String[] cards) {
     	for (int i = 0; i < cards.length; i++) {
     		this.cards.add(new Card(cards[i],0,0,-100,-100));
     	}
@@ -275,9 +329,10 @@ public class GameWindow extends JPanel{
             Card card = cards.get(i);
             if (card.contains(mouseX, mouseY)) {
                 System.out.println("Clicked on card: " + card.getName());
-                draging = card;
+                if(nextPlayer == myId) {
+                	draging = card;
+                }
                 removeDrag();
-                // You can add additional logic here, e.g., highlight the card or take some action.
                 break;
             }
         }

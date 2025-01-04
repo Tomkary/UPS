@@ -10,11 +10,13 @@ public class Player {
 	 * status = 4 unknown 
 	 * */
 	private int status;
+	private int id;
 	
-	public Player(String name, int cardCount, int status) {
+	public Player(String name, int cardCount, int status, int id) {
 		this.name = name;
 		this.cardCount = cardCount;
 		this.status = status;
+		this.id = id;
 	}
 	
 	public String getName() {
@@ -49,6 +51,14 @@ public class Player {
 	
 	public void setStatus(int status) {
 		this.status = status;
+	}
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
 	}
 
 }

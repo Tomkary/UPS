@@ -81,11 +81,96 @@ public class ClientSocket extends Thread {
             else if(parts[0].equals("join")) {
             	handleJoin(parts);
             }
+            else if(parts[0].equals("leave")) {
+            	handleLeave(parts);
+            }
+            else if(parts[0].equals("turn")) {
+            	handleTurn(parts);
+            }
+            else if(parts[0].equals("status")) {
+            	handleStatus(parts);
+            }
+            else if(parts[0].equals("start")) {
+            	handleStart(parts);
+            }
+            else if(parts[0].equals("win")) {
+            	handleWin(parts);
+            }
+            else if(parts[0].equals("ping")) {
+            	handlePing(parts);
+            }
+            else if(parts[0].equals("rejoin")) {
+            	handleRejoin(parts);
+            }
+            else {
+            	System.err.println("Error: Message not recognised!");
+            }
             
             
         } else {
             System.err.println("Error: Message does not contain the character '|'!");
         }
+    }
+    
+    public void handleStart(String[] message) {
+    	int cardCount = Integer.valueOf(message[1]);
+    	String[] cards = new String[cardCount];
+    	for(int i = 0; i < cardCount; i++) {
+    		cards[i] = message[i+2];
+    	}
+    	game.createCards(cards);
+    	
+    	int index = cardCount + 2;
+    	int players = Integer.valueOf(message[index]);
+    	for(int i = 1; i <= players; i++) {
+    		game.addPlayer(Integer.valueOf(message[index+i]), message[index+i]);
+    	}
+    	
+    	game.setStarted(true);
+    }
+    
+    public void handleStatus(String[] message) {
+    	int players = Integer.valueOf(message[1]);
+    	for(int i = 0; i < players; i++) {
+    		String[] info = message[i+2].split(";");
+    		game.updatePlayer(Integer.valueOf(info[0]), Integer.valueOf(info[1]), Integer.valueOf(info[2]));
+    	}
+    	int state = Integer.valueOf(message[players + 2]);
+    	int color = Integer.valueOf(message[players + 3]);
+    	String card = message[players + 4];
+    	int nextId = Integer.valueOf(message[players + 5]);
+    	game.statusChange(state, color, nextId, card);
+    }
+    
+    public void handleTurn(String[] message) {
+    	if(message[1].equals("ok")) {
+    		if(message[2].equals("t")) {
+    			int cardCount = Integer.valueOf(message[3]);
+    			for(int i = 0; i < cardCount; i++) {
+    				String card = message[i+4];
+    				char[] cardChars = card.toCharArray();
+    				if(Integer.valueOf(cardChars[0]) < 1 || Integer.valueOf(cardChars[0]) > 4) {
+    					System.err.println("Error: Message not recognised!");
+    				}
+    				if(Integer.valueOf(cardChars[2]) < 1 || Integer.valueOf(cardChars[2]) > 8) {
+    					System.err.println("Error: Message not recognised!");
+    				}
+    				
+    				game.getCard(card);
+    			}
+    		}
+    		else if(message[2].equals("s")) {
+    			
+    		}
+    		else if(message[2].equals("p")) {
+    			game.play();
+    		}
+    	}
+    	else if(message[1].equals("err")) {
+    		if(message[2].equals("p")) {
+    			game.returnMove();
+    		}
+    	}
     }
     
     public void handleConnect(String[] message) {
@@ -149,6 +234,17 @@ public class ClientSocket extends Thread {
     		}
     		else {
     			lobby.failJoin();
+    		}
+    	}
+    }
+    
+    public void handleLeave(String[] message) {
+    	if(message[1].equals("ok")) {
+    		lobby.changePanel(lobby);
+    	}
+    	else if(message[1].equals("err")) {
+    		if(Integer.valueOf(message[2]) == 9) {
+    			game.failLeave();
     		}
     	}
     }
