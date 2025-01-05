@@ -84,7 +84,7 @@ int main(){
             {.name = "C", .id = 8, .state = 1}
     };
 
-    init_game(room1, 3);
+    //init_game(room1, 3);
     //play("1_2", 0, 1);
 
     return 0;
