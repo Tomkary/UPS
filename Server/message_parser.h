@@ -1,12 +1,17 @@
 #ifndef SERVER_MESSAGE_PARSER_H
 #define SERVER_MESSAGE_PARSER_H
 
-#define MSG_COUNT 8
+//#define MSG_COUNT 8
+#include "room_list.h"
+
+#define MSG_COUNT 6
 
 extern char* id[MSG_COUNT];
 extern int (*handler_ptr[])(char*);
 
-int handle_connect(char* message);
+void send_lobby(room_list* rooms, int client_socket);
+
+int handle_connect(char* message, char** player_name);
 
 int handle_join(char* message);
 

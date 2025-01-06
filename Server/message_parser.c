@@ -1,35 +1,64 @@
 #include "message_parser.h"
 #include "message_sender.h"
 #include "game.h"
+#include "room_list.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 char* id[MSG_COUNT] = {
-    "connect",
+    //"connect",
     "join",
     "create",
     "rejoin",
     "leave",
-    "pause",
+ //   "pause",
     "turn",
     "ping"
 };
 
 int (*handler_ptr[])(char*)= {
-        handle_connect,
+    //    handle_connect,
         handle_join,
         handle_create,
         handle_rejoin,
         handle_leave,
-        handle_pause,
+    //    handle_pause,
         handle_turn,
         handle_ping
 };
 
-int handle_connect(char* message){
+void send_lobby(room_list* rooms, int client_socket){
+    char* message = "lobby|";
+    char num[5];
+    int index = 0;
+    int count = get_room_list_size(rooms);
+    if(count == 0){
+        return;
+    }
+
+    sprintf(num, "%d|", count);
+    strcat(message, num);
+
+    for(int i = 0; i < count; i++){
+        int r_id = get_room(rooms, i).id;
+        sprintf(num, "%d|", r_id);
+        strcat(message, num);
+    }
+    strcat(message, "\n");
+
+    while(message[index] != '\0'){
+        index++;
+    }
+    index += 7;
+
+    write(client_socket, message, index);
+}
+
+int handle_connect(char* message, char** player_name){
     char* token = NULL;
-    char* player_name = NULL;
+    char* name = NULL;
     char message_copy[256];
 
     strncpy(message_copy, message, sizeof(message_copy) - 1);
@@ -46,12 +75,14 @@ int handle_connect(char* message){
     if(!token){
         return 0;
     }
-    player_name = token;
+    name = token;
 
     token = strtok(NULL, "|");
     if(!token || strcmp(token, "\n") != 0){
         return 0;
     }
+
+    strcpy(*player_name, name);
 
     //printf("%s\n", player_name);
 
@@ -102,7 +133,6 @@ int handle_rejoin(char* message){
 
 int handle_create(char* message){
     char* token = NULL;
-    char* room_name = NULL;
     char message_copy[256];
 
     strncpy(message_copy, message, sizeof(message_copy) - 1);
@@ -114,12 +144,6 @@ int handle_create(char* message){
     if(!token){
         return 0;
     }
-
-    token = strtok(NULL, "|");
-    if(!token){
-        return 0;
-    }
-    room_name = token;
 
     token = strtok(NULL, "|");
     if(!token || strcmp(token, "\n") != 0){
