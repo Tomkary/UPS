@@ -56,11 +56,11 @@ public class LobbyWindow extends JPanel {
         Random rd = new Random();
         color = rd.nextInt(3) + 1;
 
-        rooms.addElement("Item 1");
-        rooms.addElement("Item 2");
-        rooms.addElement("Item 3");
-        rooms.addElement("Item 4");
-        rooms.addElement("Item 5");
+        //rooms.addElement("Item 1");
+        //rooms.addElement("Item 2");
+        //rooms.addElement("Item 3");
+        //rooms.addElement("Item 4");
+        //rooms.addElement("Item 5");
 
         itemList = new JList<>(rooms); // Create the list
         scrollPane = new JScrollPane(itemList); // Make it scrollable

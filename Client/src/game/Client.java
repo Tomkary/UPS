@@ -8,7 +8,14 @@ public class Client {
 		GUI gui = new GUI();
 		ClientSocket client = new ClientSocket("127.0.0.1", 12345);
 		gui.setClient(client);
-		client.setGUI(gui);
+		//client.setGUI(gui);
+		/*
+		String a = "ABC|ddd|hh";
+		String[] b = a.split("\\|");
+		for(int i = 0; i < b.length; i++) {
+			System.out.println(b[i]);
+		}
+		*/
 		/*
 		try {
 			client.connect();

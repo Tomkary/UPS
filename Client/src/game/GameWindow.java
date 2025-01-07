@@ -95,7 +95,7 @@ public class GameWindow extends JPanel{
        	 	colors[i-1] = new Rectangle();
         }
     	
-    	paus = new JButton("Pause");
+    	paus = new JButton("Start");
     	leave = new JButton("Leave");
     	add(paus);
     	add(leave);
@@ -207,7 +207,8 @@ public class GameWindow extends JPanel{
         paus.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-            	System.out.println("Pause");
+            	//System.out.println("Pause");
+            	client.sendMessage("start|"+myId+"|"+'\n');
             }
         });
     }
@@ -263,6 +264,10 @@ public class GameWindow extends JPanel{
     
     public void failLeave() {
     	JOptionPane.showMessageDialog(GameWindow.this,"Leaving room failed, try again", "Cannot leave", JOptionPane.WARNING_MESSAGE);
+    }
+    
+    public void failStart() {
+    	JOptionPane.showMessageDialog(GameWindow.this,"Start of the game failed, not enough players", "Start fail", JOptionPane.WARNING_MESSAGE);
     }
 
 	public void setMyId(int myId) {
@@ -363,7 +368,8 @@ public class GameWindow extends JPanel{
         }
         else if(started == false) {
         	drawTable(g);
-            listPlayers(g);   	
+            listPlayers(g);
+            drawSign(g, "WAITING");
         }
         else if(pause == true) {
         	drawTable(g);
