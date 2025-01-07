@@ -31,12 +31,12 @@ void remove_player(player_list *list, int index) {
 }
 
 // Get a player by index without removing
-player get_player(player_list *list, int index) {
+player* get_player(player_list *list, int index) {
     if (index < 0 || index >= list->size) {
         fprintf(stderr, "Index out of bounds\n");
         exit(EXIT_FAILURE);
     }
-    return list->players[index];
+    return &(list->players[index]);
 }
 
 // Get the size of the player list

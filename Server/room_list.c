@@ -30,12 +30,12 @@ void remove_room(room_list *list, int index) {
 }
 
 // Get a room by index without removing
-Room get_room(room_list *list, int index) {
+Room* get_room(room_list *list, int index) {
     if (index < 0 || index >= list->size) {
         fprintf(stderr, "Index out of bounds\n");
         exit(EXIT_FAILURE);
     }
-    return list->rooms[index];
+    return &(list->rooms[index]);
 }
 
 // Get the size of the room list

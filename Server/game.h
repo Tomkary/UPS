@@ -20,6 +20,7 @@ typedef struct {
     int current_player_id;
     int player_count;
     player* game;
+    int started;
 } Game;
 
 void init_decks(Game* curr_game);

@@ -9,10 +9,10 @@
 
 char* id[MSG_COUNT] = {
     //"connect",
-    "join",
-    "create",
+  //  "join",
+  //  "create",
     "rejoin",
-    "leave",
+ //   "leave",
  //   "pause",
     "turn",
     "ping"
@@ -20,17 +20,17 @@ char* id[MSG_COUNT] = {
 
 int (*handler_ptr[])(char*)= {
     //    handle_connect,
-        handle_join,
-        handle_create,
+    //    handle_join,
+    //    handle_create,
         handle_rejoin,
-        handle_leave,
+    //    handle_leave,
     //    handle_pause,
         handle_turn,
         handle_ping
 };
 
 void send_lobby(room_list* rooms, int client_socket){
-    char* message = "lobby|";
+    char message[100] = "lobby|";
     char num[5];
     int index = 0;
     int count = get_room_list_size(rooms);
@@ -42,7 +42,7 @@ void send_lobby(room_list* rooms, int client_socket){
     strcat(message, num);
 
     for(int i = 0; i < count; i++){
-        int r_id = get_room(rooms, i).id;
+        int r_id = get_room(rooms, i)->id;
         sprintf(num, "%d|", r_id);
         strcat(message, num);
     }
@@ -56,33 +56,36 @@ void send_lobby(room_list* rooms, int client_socket){
     write(client_socket, message, index);
 }
 
-int handle_connect(char* message, char** player_name){
+int handle_connect(char* message, char* player_name){
     char* token = NULL;
-    char* name = NULL;
+    char name[100];
     char message_copy[256];
 
     strncpy(message_copy, message, sizeof(message_copy) - 1);
     message_copy[sizeof(message_copy) - 1] = '\0';
 
-    //printf("%s\n", message);
+    //printf("%s\n", message_copy);
 
     token = strtok(message_copy, "|");
     if(!token){
         return 0;
     }
+    //printf("%s\n", token);
 
     token = strtok(NULL, "|");
     if(!token){
         return 0;
     }
-    name = token;
+    //name = token;
+    strcpy(name, token);
+   // printf("%s\n", name);
 
     token = strtok(NULL, "|");
-    if(!token || strcmp(token, "\n") != 0){
+    if(!token || strncmp(token, "\n", 1) != 0){
         return 0;
     }
-
-    strcpy(*player_name, name);
+    //printf("%s\n", name);
+    strcpy(player_name, name);
 
     //printf("%s\n", player_name);
 
@@ -92,9 +95,10 @@ int handle_connect(char* message, char** player_name){
     return 1;
 }
 
-int handle_join(char* message){
+int handle_join(char* message, int* r_id, int* p_id){
     char* token = NULL;
-    char* room_id = NULL;
+    char room_id[3];
+    char player_id[3];
     char message_copy[256];
 
     strncpy(message_copy, message, sizeof(message_copy) - 1);
@@ -111,13 +115,24 @@ int handle_join(char* message){
     if(!token){
         return 0;
     }
-    room_id = token;
+    strcpy(room_id, token);
+    //room_id = token;
 
     token = strtok(NULL, "|");
-    if(!token || strcmp(token, "\n") != 0){
+    if(!token){
         return 0;
     }
+    strcpy(player_id, token);
 
+    token = strtok(NULL, "|");
+    if(!token || strncmp(token, "\n", 1) != 0){
+        return 0;
+    }
+            //pthread_mutex_unlock(&room_mutex);
+            //return NULL;
+
+    *r_id = atoi(room_id);
+    *p_id = atoi(player_id);
     //printf("%d\n", atoi(room_id));
 
     //join(atoi(room_id));
@@ -146,7 +161,7 @@ int handle_create(char* message){
     }
 
     token = strtok(NULL, "|");
-    if(!token || strcmp(token, "\n") != 0){
+    if(!token || strncmp(token, "\n", 1) != 0){
         return 0;
     }
 
@@ -158,9 +173,9 @@ int handle_create(char* message){
     return 1;
 }
 
-int handle_leave(char* message){
+int handle_leave(char* message, int* p_id){
     char* token = NULL;
-    char* player_id = NULL;
+    char player_id[3];
     char message_copy[256];
 
     strncpy(message_copy, message, sizeof(message_copy) - 1);
@@ -177,13 +192,15 @@ int handle_leave(char* message){
     if(!token){
         return 0;
     }
-    player_id = token;
+    strcpy(player_id, token);
+    //player_id = token;
 
     token = strtok(NULL, "|");
-    if(!token || strcmp(token, "\n") != 0){
+    if(!token || strncmp(token, "\n", 1) != 0){
         return 0;
     }
 
+    *p_id = atoi(player_id);
     //leave(atoi(player_id));
     //respond_leave();
 

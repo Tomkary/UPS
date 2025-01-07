@@ -94,6 +94,8 @@ void init_game(Game* curr_game, player players[], int player_num){
     curr_game->player_count = player_num;
     curr_game->current_player_id = players[0].id;
 
+    curr_game->started = 1;
+
     //TODO poslat zpravu o zahrani karty vsem hracum - asi poslat STATUS
 
     /*
