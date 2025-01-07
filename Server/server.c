@@ -10,11 +10,25 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 
+#define PORT 10020
+#define MAX_CLIENTS 20
+
 
 player_list Players;
 room_list Rooms;
 int free_player_id = 0;
 int free_room_id = 0;
+
+
+void infrom_lobby(){
+    int size = get_player_list_size(&Players);
+    for(int i = 0; i < size; i++){
+        player* player = get_player(&Players, i);
+        if(player->room_id == -1){
+            send_lobby(&Rooms, player->socket);
+        }           
+    }
+}
 
 
 // Function to handle incoming client connections
@@ -33,15 +47,15 @@ void *handle_client(void *arg) {
         if(strncmp(buffer, "connect|", 8) == 0) {
 
             //check if correct message
-            char* name = NULL;
-            if(handle_connect(buffer, &name) == 0){
+            char name[100];
+            if(handle_connect(buffer, name) == 0){
                 write(client_socket, "connect|err|10|\n", 17);
                 close(client_socket);
                 return NULL;
             }
 
             for(int i = 0; i < get_player_list_size(&Players); i++){
-                if(strcmp(get_player(&Players, i).name, name) == 0){
+                if(strcmp(get_player(&Players, i)->name, name) == 0){
                     write(client_socket, "connect|err|1|\n", 16);
                     close(client_socket);
                     return NULL;
@@ -62,7 +76,7 @@ void *handle_client(void *arg) {
 
             //TODO ping thread
 
-            char* message = "connect|ok|";
+            char message[30] = "connect|ok|";
             char p_id[6];
             sprintf(p_id, "%d|\n", player.id);
             strcat(message, p_id);
@@ -78,67 +92,131 @@ void *handle_client(void *arg) {
     while ((bytes_read = read(client_socket, buffer, sizeof(buffer))) > 0) {
         buffer[bytes_read] = '\0';
 
-        //TODO join
         //TODO dis
         //TODO leave
         //TODO turn
         //TODO ping
         //TODO rejoin
 
-        //TODO create
+    // create
         if (strncmp(buffer, "create|", 7) == 0) {
 
             //check if correct message
             if(handle_create(buffer) == 0){
-                write(client_socket, "create|err|10|\n", 17);
+                write(client_socket, "create|err|10|\n", 16);
                 close(client_socket);
                 return NULL;
             }
 
+
             //create new room
             Room room = {
                     .id = free_room_id,
-                    .players[0].id = -1
+                    .players[0].id = -1,
+                    .players[1].id = -1,
+                    .players[2].id = -1,
+                    .players[3].id = -1
             };
+            room.game = malloc(sizeof(Game));
+            room.game->started = 0;
             free_room_id++;
             add_room(&Rooms, room);
 
             write(client_socket, "create|ok|\n", 12);
-            send_lobby(&Rooms, client_socket);
+            //send_lobby(&Rooms, client_socket);
+            infrom_lobby();
 
-        } else if (strncmp(buffer, "JOIN", 4) == 0) {
-            /*
+    //join
+        } else if (strncmp(buffer, "join|", 5) == 0) {
             int room_id;
-            sscanf(buffer, "JOIN %d", &room_id);
+            int player_id;
+            
+            //check message
+            if(handle_join(buffer, &room_id, &player_id) == 0){
+                write(client_socket, "join|err|10|\n", 14);
+                close(client_socket);
+                return NULL;
+            }
 
-            pthread_mutex_lock(&room_mutex);
+            //check valid room id
+            if (room_id >= 0 && room_id <= get_room_list_size(&Rooms)) {
+                Room* room = get_room(&Rooms, room_id);
+                player* player = get_player(&Players, player_id);
 
-            if (room_id > 0 && room_id <= room_count) {
-                Room *room = &rooms[room_id - 1];
-
-                if (room->player_count < MAX_CLIENTS) {
-                    PlayerThreadArgs *player_args = malloc(sizeof(PlayerThreadArgs));
-                    player_args->client_socket = client_socket;
-                    player_args->player_id = room->id * 100 + room->player_count + 1;
-                    player_args->room = room;
-
-                    room->players[room->player_count++] = (typeof(room->players[0])){client_socket, player_args->player_id};
-
-                    pthread_t player_thread;
-                    pthread_create(&player_thread, NULL, handle_player, player_args);
-                    pthread_detach(player_thread);
-
-                    write(client_socket, "Joined room.\n", 13);
-                } else {
-                    write(client_socket, "Room is full.\n", 14);
+                if(player->room_id != -1){
+                    write(client_socket, "join|err|10|\n", 14);
+                    close(client_socket);
+                    return NULL;
                 }
 
+                //check if game already started
+                if(room->game->started == 1){
+                    write(client_socket, "join|err|3|\n", 13);
+                    continue;
+                }
+
+                //set player to room & test if full
+                int i;
+                for(i = 0; i < MAX_PLAYERS; i++){
+                    if(room->players[i].id == -1){
+                        player->room_id = room_id;
+                        room->players[i] = *player;
+                        break;
+                    }
+                }
+                if(i == MAX_PLAYERS){
+                    write(client_socket, "join|err|2|\n", 13);
+                    continue;
+                }
+
+                write(client_socket, "join|ok|\n", 10);
+                continue;
+                
             } else {
-                write(client_socket, "Invalid room ID.\n", 18);
+                write(client_socket, "join|err|10|\n", 14);
+                close(client_socket);
+                return NULL;
             }
-*/
-            //pthread_mutex_unlock(&room_mutex);
-            //return NULL;
+        } else if (strncmp(buffer, "leave|", 6) == 0) {
+            int player_id;
+            player empty = {
+                .id = -1
+            };
+            
+            //check message
+            if(handle_leave(buffer, &player_id) == 0){
+                write(client_socket, "leave|err|10|\n", 15);
+                close(client_socket);
+                return NULL;
+            }
+
+            //check if in any room
+            int found = 0;
+            int room_count = get_room_list_size(&Rooms);
+            for(int i = 0; i < room_count; i++){
+                Room* room = get_room(&Rooms, i);
+                for(int j = 0; j < MAX_PLAYERS; j++){
+                    //printf("id: %d\n", room->players[j].id);
+                    if(room->players[j].id == player_id){
+                        found = 1;
+                        room->players[j] = empty;
+                        break;
+                    }
+                }
+                if(found == 1){
+                    break;
+                }
+            }
+            if(found == 0){
+                write(client_socket, "leave|err|9|\n", 14);
+                continue;
+            }
+
+            get_player(&Players, player_id)->room_id = -1;
+
+            write(client_socket, "leave|ok|\n", 11);
+            send_lobby(&Rooms, client_socket);
+            continue;
         }
     }
 

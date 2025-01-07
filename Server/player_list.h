@@ -31,7 +31,7 @@ void add_player(player_list *list, player p);
 void remove_player(player_list *list, int index);
 
 // Get a player by index without removing
-player get_player(player_list *list, int index);
+player* get_player(player_list *list, int index);
 
 // Get the size of the player list
 int get_player_list_size(player_list *list);

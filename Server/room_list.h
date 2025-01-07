@@ -8,7 +8,7 @@
 
 typedef struct {
     int id;
-    Game game;
+    Game* game;
     player players[MAX_PLAYERS];
 } Room;
 
@@ -28,7 +28,7 @@ void add_room(room_list *list, Room r);
 void remove_room(room_list *list, int index);
 
 // Get a room by index without removing
-Room get_room(room_list *list, int index);
+Room* get_room(room_list *list, int index);
 
 // Get the size of the room list
 int get_room_list_size(room_list *list);
