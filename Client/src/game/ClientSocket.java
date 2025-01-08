@@ -150,10 +150,12 @@ public class ClientSocket extends Thread {
 	    	int index = cardCount + 2;
 	    	int players = Integer.valueOf(message[index]);
 	    	for(int i = 1; i <= players; i++) {
-	    		game.addPlayer(Integer.valueOf(message[index+i]), message[index+i]);
+	    		String[] player = message[index+i].split(";");
+	    		game.addPlayer(Integer.valueOf(player[0]), player[1]);
 	    	}
 	    	
 	    	game.setStarted(true);
+	    	game.repaint();
     	}
     	
     }
@@ -169,6 +171,7 @@ public class ClientSocket extends Thread {
     	String card = message[players + 4];
     	int nextId = Integer.valueOf(message[players + 5]);
     	game.statusChange(state, color, nextId, card);
+    	game.repaint();
     }
     
     public void handleTurn(String[] message) {
@@ -270,6 +273,7 @@ public class ClientSocket extends Thread {
     public void handleLeave(String[] message) {
     	if(message[1].equals("ok")) {
     		lobby.changePanel(lobby);
+    		game.restart();
     	}
     	else if(message[1].equals("err")) {
     		if(Integer.valueOf(message[2]) == 9) {
