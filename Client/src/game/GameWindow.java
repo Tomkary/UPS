@@ -37,8 +37,8 @@ public class GameWindow extends JPanel{
     
     //cards, last played card and deck positions
     private List<Card> cards = new ArrayList<>();
-    private Card playedCard = new Card("4_8",0,0,-100,-100);
-    private Card tempCard = new Card("4_8",0,0,-100,-100);
+    private Card playedCard = new Card("4_2",0,0,-100,-100);
+    private Card tempCard = new Card("4_2",0,0,-100,-100);
     private Card deck = new Card("deck",0,0,-100,-100);
     
     //positions of the color changing buttons
@@ -95,7 +95,7 @@ public class GameWindow extends JPanel{
        	 	colors[i-1] = new Rectangle();
         }
     	
-    	paus = new JButton("Pause");
+    	paus = new JButton("Start");
     	leave = new JButton("Leave");
     	add(paus);
     	add(leave);
@@ -207,7 +207,8 @@ public class GameWindow extends JPanel{
         paus.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-            	System.out.println("Pause");
+            	//System.out.println("Pause");
+            	client.sendMessage("start|"+myId+"|"+'\n');
             }
         });
     }
@@ -263,6 +264,39 @@ public class GameWindow extends JPanel{
     
     public void failLeave() {
     	JOptionPane.showMessageDialog(GameWindow.this,"Leaving room failed, try again", "Cannot leave", JOptionPane.WARNING_MESSAGE);
+    }
+    
+    public void failStart() {
+    	JOptionPane.showMessageDialog(GameWindow.this,"Start of the game failed, not enough players", "Start fail", JOptionPane.WARNING_MESSAGE);
+    }
+    
+    public void restart() {
+    	//players
+        players = new ArrayList<>();
+        
+        //cards, last played card and deck positions
+        cards = new ArrayList<>();
+        playedCard = new Card("4_2",0,0,-100,-100);
+        tempCard = new Card("4_2",0,0,-100,-100);
+        deck = new Card("deck",0,0,-100,-100);
+
+        pause = false;
+        
+        state = 1;
+        
+        newColor = 0;
+        
+        drag = false;
+
+    	started = false;
+    	
+    	myId = 0;
+    	
+    	nextPlayer = -1;
+
+    	color = 5;
+    	changing = false;
+    	ended = -1;
     }
 
 	public void setMyId(int myId) {
@@ -343,6 +377,9 @@ public class GameWindow extends JPanel{
                 if(nextPlayer == myId) {
                 	draging = card;
                 }
+                else {
+                	return;
+                }
                 removeDrag();
                 break;
             }
@@ -363,7 +400,8 @@ public class GameWindow extends JPanel{
         }
         else if(started == false) {
         	drawTable(g);
-            listPlayers(g);   	
+            listPlayers(g);
+            drawSign(g, "WAITING");
         }
         else if(pause == true) {
         	drawTable(g);

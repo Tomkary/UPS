@@ -9,7 +9,7 @@ public class ClientSocket extends Thread {
     private Socket socket;
     private PrintWriter out;
     private BufferedReader in;
-    private volatile boolean running = false;
+    private boolean running = false;
     private LoginWindow login;
     private LobbyWindow lobby;
     private GameWindow game;
@@ -62,9 +62,11 @@ public class ClientSocket extends Thread {
     }
 
     public void receiveMessage(String message) {
+    	message = message.trim();
+    	System.out.println(message);
         if (message.contains("|")) {
         	
-            String[] parts = message.split("|");
+            String[] parts = message.split("\\|");
 
             if(parts[0].equals("connect")) {
             	handleConnect(parts);
@@ -134,20 +136,28 @@ public class ClientSocket extends Thread {
     }
     
     public void handleStart(String[] message) {
-    	int cardCount = Integer.valueOf(message[1]);
-    	String[] cards = new String[cardCount];
-    	for(int i = 0; i < cardCount; i++) {
-    		cards[i] = message[i+2];
+    	if(message[1].equals("err")){
+    		game.failStart();
     	}
-    	game.createCards(cards);
-    	
-    	int index = cardCount + 2;
-    	int players = Integer.valueOf(message[index]);
-    	for(int i = 1; i <= players; i++) {
-    		game.addPlayer(Integer.valueOf(message[index+i]), message[index+i]);
+    	else {
+	    	int cardCount = Integer.valueOf(message[1]);
+	    	String[] cards = new String[cardCount];
+	    	for(int i = 0; i < cardCount; i++) {
+	    		cards[i] = message[i+2];
+	    	}
+	    	game.createCards(cards);
+	    	
+	    	int index = cardCount + 2;
+	    	int players = Integer.valueOf(message[index]);
+	    	for(int i = 1; i <= players; i++) {
+	    		String[] player = message[index+i].split(";");
+	    		game.addPlayer(Integer.valueOf(player[0]), player[1]);
+	    	}
+	    	
+	    	game.setStarted(true);
+	    	game.repaint();
     	}
     	
-    	game.setStarted(true);
     }
     
     public void handleStatus(String[] message) {
@@ -161,6 +171,7 @@ public class ClientSocket extends Thread {
     	String card = message[players + 4];
     	int nextId = Integer.valueOf(message[players + 5]);
     	game.statusChange(state, color, nextId, card);
+    	game.repaint();
     }
     
     public void handleTurn(String[] message) {
@@ -262,6 +273,7 @@ public class ClientSocket extends Thread {
     public void handleLeave(String[] message) {
     	if(message[1].equals("ok")) {
     		lobby.changePanel(lobby);
+    		game.restart();
     	}
     	else if(message[1].equals("err")) {
     		if(Integer.valueOf(message[2]) == 9) {

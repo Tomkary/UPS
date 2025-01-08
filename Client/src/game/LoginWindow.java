@@ -97,10 +97,11 @@ public class LoginWindow extends JPanel {
                 	client.setServerPort(Integer.valueOf(serverPort));
                 	try {
 						client.connect();
+						client.start();
 					} catch (IOException e1) {
 						connectionError();
 					}
-                	client.start();
+                	//client.start();
                 	String playerName = nick.getText();
                 	client.sendMessage("connect|"+playerName+"|"+'\n');
                 }
