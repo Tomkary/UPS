@@ -11,7 +11,13 @@ extern int (*handler_ptr[])(char*);
 
 void send_lobby(room_list* rooms, int client_socket);
 
+void infrom_start(Room* room,int player_count);
+
+void inform_status(Room* room, int player_count);
+
 int handle_connect(char* message, char* player_name);
+
+int handle_start(char* message, int* p_id);
 
 int handle_join(char* message, int* room_id, int* player_id);
 

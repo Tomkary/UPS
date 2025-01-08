@@ -30,7 +30,6 @@ void infrom_lobby(){
     }
 }
 
-
 // Function to handle incoming client connections
 void *handle_client(void *arg) {
     int client_socket = *(int *)arg;
@@ -217,6 +216,56 @@ void *handle_client(void *arg) {
             write(client_socket, "leave|ok|\n", 11);
             send_lobby(&Rooms, client_socket);
             continue;
+        } else if (strncmp(buffer, "start|", 6) == 0) {
+            int player_id;
+            int found = 0;
+            
+            //check message
+            if(handle_start(buffer, &player_id) == 0){
+                write(client_socket, "start|err|10|\n", 15);
+                close(client_socket);
+                return NULL;
+            }
+
+            //check if player in room
+            Room* room;           
+            int room_count = get_room_list_size(&Rooms);
+            for(int i = 0; i < room_count; i++){
+                room = get_room(&Rooms, i);
+                for(int j = 0; j < MAX_PLAYERS; j++){
+                    //printf("id: %d\n", room->players[j].id);
+                    if(room->players[j].id == player_id){
+                        found = 1;
+                        break;
+                    }
+                }
+                if(found == 1){
+                    break;
+                }
+            }
+            if(found == 0){
+                write(client_socket, "start|err|9|\n", 14);
+                continue;
+            }
+
+            //check if room atleast 2 players
+            int count = 0;
+            for(int i = 0; i < MAX_PLAYERS; i++){
+                if(room->players[i].id != -1){
+                    count++;
+                }
+            }
+            if(count < 2){
+                write(client_socket, "start|err|9|\n", 14);
+                continue;
+            }
+
+            //start the game - inform all in room
+            init_game(room->game, room->players, count);
+            
+            infrom_start(room, count);
+
+            inform_status(room, count);
         }
     }
 

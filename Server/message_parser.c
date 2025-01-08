@@ -56,6 +56,94 @@ void send_lobby(room_list* rooms, int client_socket){
     write(client_socket, message, index);
 }
 
+void infrom_start(Room* room, int player_count){
+    for(int i = 0; i < MAX_PLAYERS; i++){
+        char message[200] = "start|4|";
+        char card[2];
+        if(room->players[i].id != -1){
+            for(int j = 0; j < room->players[i].card_count; j++){
+                sprintf(card, "%d", getCard(&room->players[i].cards, j).color);
+                strcat(message, card);
+                strcat(message, "_");
+                sprintf(card, "%d", getCard(&room->players[i].cards, j).value);
+                strcat(message, card);
+                strcat(message, "|");
+            }
+
+            char count[2];
+            sprintf(count, "%d", player_count);
+            strcat(message, count);           
+            strcat(message, "|");
+
+            for(int k = 0; k < MAX_PLAYERS; k++){
+                char id[4];
+                if(room->players[k].id != -1){
+                    sprintf(id, "%d", room->players[k].id);
+                    strcat(message, id);
+                    strcat(message, ";");
+                    strcat(message, room->players[k].name);
+                    strcat(message, "|");
+                }
+            }
+            strcat(message, "\n");
+            int length = strlen(message);
+            write(room->players[i].socket, message, length);
+        }
+    }
+}
+
+void inform_status(Room* room, int player_count){
+    for(int i = 0; i < MAX_PLAYERS; i++){
+
+        char message[200] = "status|";
+        char count[2];
+        sprintf(count, "%d", player_count);
+        strcat(message, count);           
+        strcat(message, "|");
+
+        if(room->players[i].id != -1){
+            for(int k = 0; k < MAX_PLAYERS; k++){
+                char info[4];
+                if(room->players[k].id != -1){
+                    sprintf(info, "%d", room->players[k].id);
+                    strcat(message, info);
+                    strcat(message, ";");
+                    sprintf(info, "%d", room->players[k].card_count);
+                    strcat(message, info);
+                    strcat(message, ";");
+                    sprintf(info, "%d", room->players[k].state);
+                    strcat(message, info);
+                    strcat(message, "|");
+                }
+            }
+
+            char game_info[4];
+            char card[2];
+            sprintf(game_info, "%d", room->game->game_state);
+            strcat(message, game_info);
+            strcat(message, "|");
+            sprintf(game_info, "%d", room->game->change_color);
+            strcat(message, game_info);
+            strcat(message, "|");
+
+            sprintf(card, "%d", room->game->last_played.color);
+            strcat(message, card);
+            strcat(message, "_");
+            sprintf(card, "%d", room->game->last_played.value);
+            strcat(message, card);                
+            strcat(message, "|");
+
+            sprintf(game_info, "%d", room->game->current_player_id);
+            strcat(message, game_info);
+            strcat(message, "|");
+
+            strcat(message, "\n");
+            int length = strlen(message);
+            write(room->players[i].socket, message, length);
+        }
+    }
+}
+
 int handle_connect(char* message, char* player_name){
     char* token = NULL;
     char name[100];
@@ -91,6 +179,37 @@ int handle_connect(char* message, char* player_name){
 
     //connect(player_name);
     //respond_connect();
+
+    return 1;
+}
+
+int handle_start(char* message, int* p_id){
+    char* token = NULL;
+    char player_id[3];
+    char message_copy[256];
+
+    strncpy(message_copy, message, sizeof(message_copy) - 1);
+    message_copy[sizeof(message_copy) - 1] = '\0';
+
+    //printf("%s\n", message);
+
+    token = strtok(message_copy, "|");
+    if(!token){
+        return 0;
+    }
+
+    token = strtok(NULL, "|");
+    if(!token){
+        return 0;
+    }
+    strcpy(player_id, token);
+
+    token = strtok(NULL, "|");
+    if(!token || strncmp(token, "\n", 1) != 0){
+        return 0;
+    }
+
+    *p_id = atoi(player_id);
 
     return 1;
 }
