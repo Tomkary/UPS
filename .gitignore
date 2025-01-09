@@ -41,3 +41,6 @@ Client/Textures/1_4.jpg
 Client/Textures/1_2.jpg
 Client/Textures/1_3.jpg
 Client/Textures/1_1.jpg
+/bin/game/classes/Textures
+/Client/src/game/resources/Textures
+/bin/game

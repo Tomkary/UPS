@@ -156,14 +156,20 @@ public class GameWindow extends JPanel{
             				repaint();
             				//tempCard.setName(playedCard.getName());
                 			//playedCard = draging;
-                			tempCard.setName(draging.getName());
+            				
+                			//tempCard.setName(draging.getName());
+                			tempCard = draging;
+                			
             				draging = null;
             				return;
             			}
             			changing = false;
             			//tempCard.setName(playedCard.getName());
             			//playedCard = draging;
-            			tempCard.setName(draging.getName());
+            			
+            			//tempCard.setName(draging.getName());
+            			tempCard = draging;
+            			
             			//client.sendMessage("turn|p|"+playedCard.getName()+"|0|"+myId+"|"+'\n');
             			client.sendMessage("turn|p|"+draging.getName()+"|0|"+myId+"|"+'\n');
             		}
@@ -216,7 +222,8 @@ public class GameWindow extends JPanel{
     public void returnMove() {
     	//cards.add(playedCard);
     	//playedCard.setName(tempCard.getName());
-    	cards.add(tempCard);
+    	Card card = new Card(tempCard.getName(),0,0,-100,-100);
+    	cards.add(card);
     	this.repaint();
     }
     
@@ -633,7 +640,7 @@ public class GameWindow extends JPanel{
        
         int x = (tableX + (tableWidth / 2) - width / 2);
         int y = tableY + 2 * height;
-        if (cardTexture[color-1] != null) {
+        if (color > 0 && cardTexture[color-1] != null) {
 	    	TexturePaint texturePaint = new TexturePaint(colorTexture[color-1], new Rectangle(x, y, width, height));
 	        Graphics2D g2d = (Graphics2D) g;
 	        g2d.setPaint(texturePaint);

@@ -65,6 +65,26 @@ public class GUI extends JFrame implements Runnable{
 	public LoginWindow getLogin() {
 		return login;
 	}
+	
+/*	
+	private void prepTexture() {
+	    try {
+	        // Load texture for the table
+	        tableTexture = ImageIO.read(getClass().getResource("/Textures/drevos.jpg"));
+	        backTexture = ImageIO.read(getClass().getResource("/Textures/zed.jpg"));
+	        backCard = ImageIO.read(getClass().getResource("/Textures/back.jpg"));
+	        backgroundTexture = ImageIO.read(getClass().getResource("/Textures/drev2.jpg"));
+	        for (int i = 1; i < 5; i++) {
+	            for (int j = 1; j < 9; j++) {
+	                cardTexture[i - 1][j - 1] = ImageIO.read(getClass().getResource("/Textures/" + i + "_" + j + ".jpg"));
+	            }
+	            colorTexture[i - 1] = ImageIO.read(getClass().getResource("/Textures/ch_" + i + ".jpg"));
+	        }
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	    }
+	}
+*/
 
 	private void prepTexture() {
 		try {
