@@ -34,6 +34,8 @@ card getCard(const card_list *list, int index);
 // Shuffle the cards in the list
 void shuffleCards(card_list *list);
 
+void to_string(card card, char string[]);
+
 // Free the memory used by the card list
 void freeCardList(card_list *list);
 

@@ -94,6 +94,13 @@ void init_game(Game* curr_game, player players[], int player_num){
     curr_game->player_count = player_num;
     curr_game->current_player_id = players[0].id;
 
+    if(curr_game->last_played.value == 1){
+        curr_game->game_state = 2;
+    }
+    else if(curr_game->last_played.value == 8){
+        curr_game->game_state = 3;
+    }
+
     curr_game->started = 1;
 
     //TODO poslat zpravu o zahrani karty vsem hracum - asi poslat STATUS
@@ -274,7 +281,7 @@ int play(Game* curr_game, char* card_played, int color_changing, int player_id){
     return 0;
 }
 
-int take(Game* curr_game, int player_id){
+int take(Game* curr_game, int player_id, int* take_count, card_list* card_arr){
     card_list take;
     int i = 0;
     card temp;
@@ -302,6 +309,11 @@ int take(Game* curr_game, int player_id){
         temp = removeCard(&curr_game->deck, 0);
         check_empty_deck(curr_game);
         addCard(&(curr_game->game[player_index].cards), temp.color, temp.value);
+
+        //for message
+        addCard(card_arr, temp.color, temp.value);
+        *take_count = 1;
+
         curr_game->game_state = 1;
         change_player(curr_game, player_id);
         freeCardList(&take);
@@ -323,7 +335,14 @@ int take(Game* curr_game, int player_id){
                 temp = removeCard(&curr_game->deck, 0);
                 check_empty_deck(curr_game);
                 addCard(&(curr_game->game[player_index].cards), temp.color, temp.value);
+
+                //for message
+                addCard(card_arr, temp.color, temp.value);
             }
+
+            //for message
+            *take_count = taking;
+
             curr_game->game_state = 1;
             change_player(curr_game, player_id);
             freeCardList(&take);

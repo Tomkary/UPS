@@ -14,7 +14,7 @@ char* id[MSG_COUNT] = {
     "rejoin",
  //   "leave",
  //   "pause",
-    "turn",
+ //   "turn",
     "ping"
 };
 
@@ -25,7 +25,7 @@ int (*handler_ptr[])(char*)= {
         handle_rejoin,
     //    handle_leave,
     //    handle_pause,
-        handle_turn,
+    //    handle_turn,
         handle_ping
 };
 
@@ -54,6 +54,116 @@ void send_lobby(room_list* rooms, int client_socket){
     index += 7;
 
     write(client_socket, message, index);
+}
+
+void infrom_start(Room* room, int player_count){
+    for(int i = 0; i < MAX_PLAYERS; i++){
+        char message[200] = "start|4|";
+        char card[2];
+        if(room->players[i].id != -1){
+            for(int j = 0; j < room->players[i].card_count; j++){
+                sprintf(card, "%d", getCard(&room->players[i].cards, j).color);
+                strcat(message, card);
+                strcat(message, "_");
+                sprintf(card, "%d", getCard(&room->players[i].cards, j).value);
+                strcat(message, card);
+                strcat(message, "|");
+            }
+
+            char count[2];
+            sprintf(count, "%d", player_count);
+            strcat(message, count);           
+            strcat(message, "|");
+
+            for(int k = 0; k < MAX_PLAYERS; k++){
+                char id[4];
+                if(room->players[k].id != -1){
+                    sprintf(id, "%d", room->players[k].id);
+                    strcat(message, id);
+                    strcat(message, ";");
+                    strcat(message, room->players[k].name);
+                    strcat(message, "|");
+                }
+            }
+            strcat(message, "\n");
+            int length = strlen(message);
+            write(room->players[i].socket, message, length);
+        }
+    }
+}
+
+void inform_status(Room* room, int player_count){
+    for(int i = 0; i < MAX_PLAYERS; i++){
+
+        char message[200] = "status|";
+        char count[2];
+        sprintf(count, "%d", player_count);
+        strcat(message, count);           
+        strcat(message, "|");
+
+        if(room->players[i].id != -1){
+            for(int k = 0; k < MAX_PLAYERS; k++){
+                char info[4];
+                if(room->players[k].id != -1){
+                    sprintf(info, "%d", room->players[k].id);
+                    strcat(message, info);
+                    strcat(message, ";");
+                    sprintf(info, "%d", room->players[k].card_count);
+                    strcat(message, info);
+                    strcat(message, ";");
+                    sprintf(info, "%d", room->players[k].state);
+                    strcat(message, info);
+                    strcat(message, "|");
+                }
+            }
+
+            char game_info[4];
+            char card[2];
+            sprintf(game_info, "%d", room->game->game_state);
+            strcat(message, game_info);
+            strcat(message, "|");
+            sprintf(game_info, "%d", room->game->change_color);
+            strcat(message, game_info);
+            strcat(message, "|");
+
+            sprintf(card, "%d", room->game->last_played.color);
+            strcat(message, card);
+            strcat(message, "_");
+            sprintf(card, "%d", room->game->last_played.value);
+            strcat(message, card);                
+            strcat(message, "|");
+
+            sprintf(game_info, "%d", room->game->current_player_id);
+            strcat(message, game_info);
+            strcat(message, "|");
+
+            strcat(message, "\n");
+            int length = strlen(message);
+            write(room->players[i].socket, message, length);
+        }
+    }
+}
+
+void send_take(card_list* takes, int socket){
+    char card_take[4] = "";
+    char message[200] = "turn|ok|t|";
+    char size[3];
+
+    sprintf(size, "%d", getCardCount(takes));
+    strcat(message, size);
+    strcat(message, "|");
+
+    while(getCardCount(takes) != 0){
+        card card = removeCard(takes, 0);
+        to_string(card, card_take);
+        strcat(message, card_take);
+        strcat(message, "|");
+    }
+
+    strcat(message, "\n");
+
+    int length = strlen(message);
+    write(socket, message, length);
 }
 
 int handle_connect(char* message, char* player_name){
@@ -91,6 +201,37 @@ int handle_connect(char* message, char* player_name){
 
     //connect(player_name);
     //respond_connect();
+
+    return 1;
+}
+
+int handle_start(char* message, int* p_id){
+    char* token = NULL;
+    char player_id[3];
+    char message_copy[256];
+
+    strncpy(message_copy, message, sizeof(message_copy) - 1);
+    message_copy[sizeof(message_copy) - 1] = '\0';
+
+    //printf("%s\n", message);
+
+    token = strtok(message_copy, "|");
+    if(!token){
+        return 0;
+    }
+
+    token = strtok(NULL, "|");
+    if(!token){
+        return 0;
+    }
+    strcpy(player_id, token);
+
+    token = strtok(NULL, "|");
+    if(!token || strncmp(token, "\n", 1) != 0){
+        return 0;
+    }
+
+    *p_id = atoi(player_id);
 
     return 1;
 }
@@ -255,9 +396,9 @@ int handle_pause(char* message){
     return 1;
 }
 
-int handle_taking(char* message){
+int handle_taking(char* message, int* p_id){
     char* token = NULL;
-    char* player_id = NULL;
+    char player_id[4];
     char message_copy[256];
 
     strncpy(message_copy, message, sizeof(message_copy) - 1);
@@ -273,12 +414,15 @@ int handle_taking(char* message){
     if(!token){
         return 0;
     }
-    player_id = token;
+    strcpy(player_id, token);
+    //player_id = token;
 
     token = strtok(NULL, "|");
-    if(!token || strcmp(token, "\n") != 0){
+    if(!token || strncmp(token, "\n", 1) != 0){
         return 0;
     }
+
+    *p_id = atoi(player_id);
 
     //take(atoi(player_id));
     //respond_take();
@@ -286,9 +430,9 @@ int handle_taking(char* message){
     return 1;
 }
 
-int handle_staying(char* message){
+int handle_staying(char* message, int* p_id){
     char* token = NULL;
-    char* player_id = NULL;
+    char player_id[4];
     char message_copy[256];
 
     strncpy(message_copy, message, sizeof(message_copy) - 1);
@@ -304,12 +448,15 @@ int handle_staying(char* message){
     if(!token){
         return 0;
     }
-    player_id = token;
+    strcpy(player_id, token);
+    //player_id = token;
 
     token = strtok(NULL, "|");
-    if(!token || strcmp(token, "\n") != 0){
+    if(!token || strncmp(token, "\n", 1) != 0){
         return 0;
     }
+
+    *p_id = atoi(player_id);
 
     //stay(atoi(player_id));
     //respond_stay();
@@ -317,11 +464,11 @@ int handle_staying(char* message){
     return 1;
 }
 
-int handle_playing(char* message){
+int handle_playing(char* message, char card[], int* p_id, int* color){
     char* token = NULL;
-    char* player_id = NULL;
-    char* color_change = NULL;
-    char* card = NULL;
+    char player_id[4];
+    char color_change[2];
+    //char* card = NULL;
     char message_copy[256];
 
     strncpy(message_copy, message, sizeof(message_copy) - 1);
@@ -337,24 +484,30 @@ int handle_playing(char* message){
     if(!token){
         return 0;
     }
-    player_id = token;
+    strcpy(card, token);
+    //card = token;
 
     token = strtok(NULL, "|");
     if(!token){
         return 0;
     }
-    card = token;
+    strcpy(color_change, token);
+    //color_change = token;
 
     token = strtok(NULL, "|");
     if(!token){
         return 0;
     }
-    color_change = token;
+    strcpy(player_id, token);
+    //player_id = token;
 
     token = strtok(NULL, "|");
-    if(!token || strcmp(token, "\n") != 0){
+    if(!token || strncmp(token, "\n", 1) != 0){
         return 0;
     }
+
+    *p_id = atoi(player_id);
+    *color = atoi(color_change);
 
     //play(card, atoi(color_change), atoi(player_id));
     //respond_play();
@@ -362,9 +515,9 @@ int handle_playing(char* message){
     return 1;
 }
 
-int handle_turn(char* message){
+int handle_turn(char* message, char card[], int* p_id, int* color){
     char* token = NULL;
-    char* identifier = NULL;
+    char identifier[2];
     char message_copy[256];
 
     strncpy(message_copy, message, sizeof(message_copy) - 1);
@@ -381,20 +534,31 @@ int handle_turn(char* message){
     if(!token){
         return 0;
     }
-    identifier = token;
+    strcpy(identifier, token);
+    //identifier = token;
 
     if(strcmp(identifier, "t") == 0){
-        return handle_taking(message);
+        if(handle_taking(message, p_id) != 0){
+            return 1;
+        }
     }
     else if(strcmp(identifier, "s") == 0){
-        return handle_staying(message);
+        if(handle_staying(message, p_id) != 0){
+            return 2;
+        }
+        //return handle_staying(message);
     }
     else if(strcmp(identifier, "p") == 0){
-        return handle_playing(message);
+        if(handle_playing(message, card, p_id, color) != 0){
+            return 3;
+        }
+        //return handle_playing(message);
     }
     else{
         return 0;
     }
+
+    return 0;
 }
 
 int handle_ping(char* message){
