@@ -1,6 +1,7 @@
 #include "card_list.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
 // Initialize a CardList
@@ -70,6 +71,20 @@ void shuffleCards(card_list *list) {
         list->cards[i] = list->cards[j];
         list->cards[j] = temp;
     }
+}
+
+void to_string(card card, char string[]){
+    char col[2];
+    char val[2];
+    char string_card[4] = "";
+
+    sprintf(col, "%d", card.color);
+    strcat(string_card, col);
+    strcat(string_card, "_");
+    sprintf(val, "%d", card.value);
+    strcat(string_card, val);
+
+    strcpy(string, string_card);  
 }
 
 // Free the memory used by the card list

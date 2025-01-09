@@ -15,6 +15,8 @@ void infrom_start(Room* room,int player_count);
 
 void inform_status(Room* room, int player_count);
 
+void send_take(card_list* takes, int socket);
+
 int handle_connect(char* message, char* player_name);
 
 int handle_start(char* message, int* p_id);
@@ -29,13 +31,13 @@ int handle_leave(char* message, int* player_id);
 
 int handle_pause(char* message);
 
-int handle_taking(char* message);
+int handle_taking(char* message, int* player_id);
 
-int handle_staying(char* message);
+int handle_staying(char* message, int* player_id);
 
-int handle_playing(char* message);
+int handle_playing(char* message, char card[], int* player_id, int* color);
 
-int handle_turn(char* message);
+int handle_turn(char* message, char card[], int* player_id, int* color);
 
 int handle_ping(char* message);
 

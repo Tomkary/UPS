@@ -33,7 +33,7 @@ void change_player(Game* curr_game, int player_id);
 
 int play(Game* curr_game, char* card, int color_changing, int player_id);
 
-int take(Game* curr_game, int player_id);
+int take(Game* curr_game, int player_id, int* take_count, card_list* card_arr);
 
 int stay(Game* curr_game, int player_id);
 

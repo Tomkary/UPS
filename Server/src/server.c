@@ -244,7 +244,7 @@ void *handle_client(void *arg) {
                 }
             }
             if(found == 0){
-                write(client_socket, "start|err|9|\n", 14);
+                write(client_socket, "start|err|7|\n", 14);
                 continue;
             }
 
@@ -266,6 +266,95 @@ void *handle_client(void *arg) {
             infrom_start(room, count);
 
             inform_status(room, count);
+
+        } else if (strncmp(buffer, "turn|", 5) == 0) {
+            int color_change = 0;
+            int player_id = -1;
+            char card[4] = "5_9";
+
+            //check message
+            int mess_value = handle_turn(buffer, card, &player_id, &color_change);
+            if(mess_value == 0){
+                write(client_socket, "turn|err|10|\n", 14);
+                close(client_socket);
+                return NULL;
+            }
+
+            int found = 0;
+            //check if player in room
+            Room* room;           
+            int room_count = get_room_list_size(&Rooms);
+            for(int i = 0; i < room_count; i++){
+                room = get_room(&Rooms, i);
+                for(int j = 0; j < MAX_PLAYERS; j++){
+                    //printf("id: %d\n", room->players[j].id);
+                    if(room->players[j].id == player_id){
+                        found = 1;
+                        break;
+                    }
+                }
+                if(found == 1){
+                    break;
+                }
+            }
+            if(found == 0){
+                if(mess_value == 3){
+                    write(client_socket, "turn|err|p|7|\n", 15);
+                }
+                else{
+                    write(client_socket, "turn|err|7|\n", 13);
+                }
+                //write(client_socket, "turn|err|7|\n", 13);
+                continue;
+            }
+
+            if(mess_value == 1){
+                int take_count = 0;
+                card_list cards_taken;
+                initCardList(&cards_taken, 8);
+                if(take(room->game, player_id, &take_count, &cards_taken) == 1){
+                    send_take(&cards_taken, client_socket);
+                    freeCardList(&cards_taken);
+                }
+                else{
+                    write(client_socket, "turn|err|t|6|\n", 15);
+                    freeCardList(&cards_taken);
+                    continue;
+                }
+            }
+            else if(mess_value == 2){
+                if(stay(room->game, player_id) == 1){
+                    write(client_socket, "turn|ok|s|\n", 12);
+                }
+                else{
+                    write(client_socket, "turn|err|s|6|\n", 15);
+                    continue;
+                }
+            }
+            else if(mess_value == 3){
+                if(play(room->game, card, color_change, player_id) == 1){
+                    write(client_socket, "turn|ok|p|\n", 12);
+                }
+                else{
+                    write(client_socket, "turn|err|p|6|\n", 15);
+                    continue;
+                }
+            }
+            else{
+                write(client_socket, "turn|err|10|\n", 14);
+                close(client_socket);
+                return NULL;
+            }
+
+            int count = 0;
+            for(int i = 0; i < MAX_PLAYERS; i++){
+                if(room->players[i].id != -1){
+                    count++;
+                }
+            }
+
+            inform_status(room, count);
+
         }
     }
 
