@@ -7,7 +7,7 @@ OBJ_DIR = obj
 
 SRCS = $(wildcard $(SRC_DIR)/*.c)
 OBJS = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRCS))
-TARGET = graph.exe
+TARGET = server.exe
 
 all: $(TARGET)
 
