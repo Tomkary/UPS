@@ -62,8 +62,9 @@ public class ClientSocket extends Thread {
     }
 
     public void receiveMessage(String message) {
+    	//System.out.println(message);
     	message = message.trim();
-    	System.out.println(message);
+    	//System.out.println(message);
         if (message.contains("|")) {
         	
             String[] parts = message.split("\\|");
@@ -104,11 +105,14 @@ public class ClientSocket extends Thread {
             else if(parts[0].equals("rejoin")) {
             	handleRejoin(parts);
             }
-            else if(parts[0].equals("end")) {
-            	handleEnd(parts);
-            }
+      //      else if(parts[0].equals("end")) {
+      //      	handleEnd(parts);
+      //      }
             else {
             	System.err.println("Error: Message not recognised!");
+            	System.out.println("----");
+            	System.out.println(message);
+            	System.out.println("----");
             }
             
             
@@ -180,15 +184,21 @@ public class ClientSocket extends Thread {
     			int cardCount = Integer.valueOf(message[3]);
     			for(int i = 0; i < cardCount; i++) {
     				String card = message[i+4];
-    				char[] cardChars = card.toCharArray();
-    				if(Integer.valueOf(cardChars[0]) < 1 || Integer.valueOf(cardChars[0]) > 4) {
+    				//char[] cardChars = card.toCharArray();
+    				//card.substring(0, 0);
+    				if(Integer.parseInt(card.substring(0, 1)) < 1 || Integer.valueOf(card.substring(0, 1)) > 4) {
+    					this.running = false;
     					System.err.println("Error: Message not recognised!");
     				}
-    				if(Integer.valueOf(cardChars[2]) < 1 || Integer.valueOf(cardChars[2]) > 8) {
+    				else if(Integer.valueOf(card.substring(2, 3)) < 1 || Integer.valueOf(card.substring(2, 3)) > 8) {
+    					this.running = false;
     					System.err.println("Error: Message not recognised!");
+    				}
+    				else {
+    					game.getCard(card);
     				}
     				
-    				game.getCard(card);
+    				//game.getCard(card);
     			}
     		}
     		else if(message[2].equals("s")) {
@@ -273,6 +283,7 @@ public class ClientSocket extends Thread {
     public void handleLeave(String[] message) {
     	if(message[1].equals("ok")) {
     		lobby.changePanel(lobby);
+    		lobby.repaint();
     		game.restart();
     	}
     	else if(message[1].equals("err")) {

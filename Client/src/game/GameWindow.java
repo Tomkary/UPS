@@ -401,6 +401,7 @@ public class GameWindow extends JPanel{
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         
         if(ended != -1) {
+        	this.state = 1;
         	drawTable(g);
         	listPlayers(g);
         	drawSign(g, "Winner: "+players.get(ended).getName());
@@ -431,9 +432,16 @@ public class GameWindow extends JPanel{
         	}
         }
         
+        
+        if(this.state == 3 && this.myId == this.nextPlayer) {
+        	drawButton(g);
+        }
+        /*
         if(Integer.valueOf(playedCard.getName().split("_")[1]) == 8) {
         	drawButton(g);
         }
+        */
+        
         
         if(changing) {
         	changeColor(g);
