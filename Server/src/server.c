@@ -339,7 +339,8 @@ void *handle_client(void *arg) {
                 int take_count = 0;
                 card_list cards_taken;
                 initCardList(&cards_taken, 8);
-                if(take(room->game, player_id, &take_count, &cards_taken) == 1){
+                int take_val = take(room->game, player_id, &take_count, &cards_taken);
+                if(take_val == 1){
                     for(int i = 0; i < MAX_PLAYERS; i++){
                         if(room->players[i].id == player_id){
                             room->players[i].card_count += take_count;
@@ -347,6 +348,11 @@ void *handle_client(void *arg) {
                     }
                     send_take(&cards_taken, client_socket);
                     freeCardList(&cards_taken);
+                }
+                else if(take_val == 2){
+                    write(client_socket, "turn|err|t|11|\n", 16);
+                    freeCardList(&cards_taken);
+                    continue;
                 }
                 else{
                     write(client_socket, "turn|err|t|6|\n", 15);

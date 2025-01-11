@@ -80,7 +80,7 @@ void init_game(Game* curr_game, player players[], int player_num){
 
     for(i = 0; i < player_num; i++){
         players[i].card_count = 4;
-        initCardList(&(players[i].cards), 4);
+        initCardList(&(players[i].cards), 16);
         for(j = 0; j < 4; j++) {
             temp = removeCard(&curr_game->deck, 0);
             addCard(&(players[i].cards), temp.color, temp.value);
@@ -322,6 +322,10 @@ int take(Game* curr_game, int player_id, int* take_count, card_list* card_arr){
     }
 
     initCardList(&take, 1);
+
+    if(getCardCount(&curr_game->deck) <= 0){
+        return 2;
+    }
 
     if(curr_game->game_state == 1 || curr_game->game_state == 4){
         temp = removeCard(&curr_game->deck, 0);
