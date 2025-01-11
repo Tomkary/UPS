@@ -211,6 +211,33 @@ void *handle_client(void *arg) {
                 continue;
             }
 
+            //////////////
+            int room_id = get_player(&Players, player_id)->room_id;
+            Room* cur_room = get_room(&Rooms, room_id);
+            int player_count = 0;
+            for(int i = 0; i < MAX_PLAYERS; i++){         
+                if(cur_room->players[i].id != -1){
+                    player_count++;
+                }
+            }
+            if(player_count == 1){
+                for(int i = 0; i < MAX_PLAYERS; i++){         
+                    if(cur_room->players[i].id != -1){
+                       cur_room->players[i].card_count = 0;
+                    }
+                }
+                if(cur_room->game->started == 1){
+                    inform_win(cur_room);
+                }
+            }
+            else if(player_count <= 0){
+                //restart room
+                free(cur_room->game);
+                cur_room->game = malloc(sizeof(Game));
+                cur_room->game->started = 0;
+            }
+            //////////////////
+
             get_player(&Players, player_id)->room_id = -1;
 
             write(client_socket, "leave|ok|\n", 11);
@@ -313,6 +340,11 @@ void *handle_client(void *arg) {
                 card_list cards_taken;
                 initCardList(&cards_taken, 8);
                 if(take(room->game, player_id, &take_count, &cards_taken) == 1){
+                    for(int i = 0; i < MAX_PLAYERS; i++){
+                        if(room->players[i].id == player_id){
+                            room->players[i].card_count += take_count;
+                        }
+                    }
                     send_take(&cards_taken, client_socket);
                     freeCardList(&cards_taken);
                 }
@@ -333,6 +365,11 @@ void *handle_client(void *arg) {
             }
             else if(mess_value == 3){
                 if(play(room->game, card, color_change, player_id) == 1){
+                    for(int i = 0; i < MAX_PLAYERS; i++){
+                        if(room->players[i].id == player_id){
+                            room->players[i].card_count--;
+                        }
+                    }
                     write(client_socket, "turn|ok|p|\n", 12);
                 }
                 else{
@@ -354,6 +391,11 @@ void *handle_client(void *arg) {
             }
 
             inform_status(room, count);
+
+            //is winner ?
+            if(inform_win(room) == 1){
+
+            }
 
         }
     }
