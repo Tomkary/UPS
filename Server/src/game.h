@@ -19,6 +19,7 @@ typedef struct {
     card_list dis_deck;
     int current_player_id;
     int player_count;
+    char last_turn;
     player* game;
     int started;
 } Game;

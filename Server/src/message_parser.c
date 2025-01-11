@@ -166,6 +166,36 @@ void send_take(card_list* takes, int socket){
     write(socket, message, length);
 }
 
+int inform_win(Room* room){
+    char message[50] = "win|";
+    char p_id[4];
+    int found = 0;
+
+    for(int i = 0; i < MAX_PLAYERS; i++){
+        if(room->players[i].id != -1){
+            if(room->players[i].card_count == 0){
+                sprintf(p_id, "%d", room->players[i].id);
+                strcat(message, p_id);
+                strcat(message, "|\n");
+                found = 1;
+                break;
+            }
+        }
+    }
+
+    if(found == 1){
+        int length = strlen(message);
+        for(int i = 0; i < MAX_PLAYERS; i++){
+            if(room->players[i].id != -1){
+              write(room->players[i].socket, message, length);
+           }
+        }
+        return 1;
+    }
+
+    return 0;
+}
+
 int handle_connect(char* message, char* player_name){
     char* token = NULL;
     char name[100];

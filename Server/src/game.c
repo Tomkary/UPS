@@ -102,6 +102,7 @@ void init_game(Game* curr_game, player players[], int player_num){
     }
 
     curr_game->started = 1;
+    curr_game->last_turn = 'p';
 
     //TODO poslat zpravu o zahrani karty vsem hracum - asi poslat STATUS
 
@@ -209,6 +210,7 @@ int play(Game* curr_game, char* card_played, int color_changing, int player_id){
         change_player(curr_game, player_id);
         curr_game->last_played.color = color;
         curr_game->last_played.value = value;
+        curr_game->last_turn = 'p';
         return 1;
     }
 
@@ -230,6 +232,7 @@ int play(Game* curr_game, char* card_played, int color_changing, int player_id){
             change_player(curr_game, player_id);
             curr_game->last_played.color = color;
             curr_game->last_played.value = value;
+            curr_game->last_turn = 'p';
             return 1;
         }
         else{
@@ -239,6 +242,9 @@ int play(Game* curr_game, char* card_played, int color_changing, int player_id){
 
     //playing color on color
     if(color == curr_game->last_played.color){
+        if(curr_game->game_state == 2 || curr_game->game_state == 3){
+            return 0;
+        }
         if(value == SEVEN){
             curr_game->game_state = 2;
         }
@@ -254,6 +260,7 @@ int play(Game* curr_game, char* card_played, int color_changing, int player_id){
         change_player(curr_game, player_id);
         curr_game->last_played.color = color;
         curr_game->last_played.value = value;
+        curr_game->last_turn = 'p';
         return 1;
     }
 
@@ -261,12 +268,16 @@ int play(Game* curr_game, char* card_played, int color_changing, int player_id){
     if(value == curr_game->last_played.value){
         if(value == SEVEN){
             curr_game->game_state = 2;
+            //TODO tady neco delat problem se 7 stav zustane t
+            //ale nekdy potrebuju p a nekdy t
         }
         else if(value == ACE){
             curr_game->game_state = 3;
+            curr_game->last_turn = 'p';
         }
         else{
             curr_game->game_state = 1;
+            curr_game->last_turn = 'p';
         }
         curr_game->change_color = color_changing;
         temp = removeCard(&(curr_game->game[player_index].cards), card_index);
@@ -314,12 +325,13 @@ int take(Game* curr_game, int player_id, int* take_count, card_list* card_arr){
         addCard(card_arr, temp.color, temp.value);
         *take_count = 1;
 
-        curr_game->game_state = 1;
+        //curr_game->game_state = 1;
         change_player(curr_game, player_id);
         freeCardList(&take);
+        curr_game->last_turn = 't';
         return 1;
     }
-    else if(curr_game->game_state == 2){
+    else if(curr_game->game_state == 2 && curr_game->last_turn == 'p'){
         last_index = (getCardCount(&curr_game->dis_deck) - 1);
         temp = getCard(&curr_game->dis_deck, last_index);
         while(temp.value == 1){
@@ -346,12 +358,28 @@ int take(Game* curr_game, int player_id, int* take_count, card_list* card_arr){
             curr_game->game_state = 1;
             change_player(curr_game, player_id);
             freeCardList(&take);
+            curr_game->last_turn = 't';
             return 1;
         }
         else{
             freeCardList(&take);
             return 0;
         }
+    }
+    else if(curr_game->game_state == 2 && curr_game->last_turn != 'p'){
+        temp = removeCard(&curr_game->deck, 0);
+        check_empty_deck(curr_game);
+        addCard(&(curr_game->game[player_index].cards), temp.color, temp.value);
+
+        //for message
+        addCard(card_arr, temp.color, temp.value);
+        *take_count = 1;
+
+        curr_game->game_state = 1;
+        change_player(curr_game, player_id);
+        freeCardList(&take);
+        curr_game->last_turn = 't';
+        return 1;
     }
     else{
         freeCardList(&take);
@@ -360,9 +388,11 @@ int take(Game* curr_game, int player_id, int* take_count, card_list* card_arr){
 }
 
 int stay(Game* curr_game, int player_id){
-    if(curr_game->game_state == 2 && curr_game->last_played.value == 8 && curr_game->current_player_id == player_id){
+    //printf("stav:");
+    if(curr_game->game_state == 3 && curr_game->last_played.value == 8 && curr_game->current_player_id == player_id){
         curr_game->game_state = 1;
         change_player(curr_game, player_id);
+        curr_game->last_turn = 's';
         return 1;
     }
     else{

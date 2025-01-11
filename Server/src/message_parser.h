@@ -17,6 +17,8 @@ void inform_status(Room* room, int player_count);
 
 void send_take(card_list* takes, int socket);
 
+int inform_win(Room* room);
+
 int handle_connect(char* message, char* player_name);
 
 int handle_start(char* message, int* p_id);
