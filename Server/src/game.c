@@ -268,6 +268,13 @@ int play(Game* curr_game, char* card_played, int color_changing, int player_id){
     if(value == curr_game->last_played.value){
         if(value == SEVEN){
             curr_game->game_state = 2;
+            if(curr_game->last_turn == 't'){
+                curr_game->last_turn = 'v';
+            }
+            else{
+                curr_game->last_turn = 'p';
+            }
+            //curr_game->last_turn = 'p';
             //TODO tady neco delat problem se 7 stav zustane t
             //ale nekdy potrebuju p a nekdy t
         }
@@ -366,14 +373,45 @@ int take(Game* curr_game, int player_id, int* take_count, card_list* card_arr){
             return 0;
         }
     }
-    else if(curr_game->game_state == 2 && curr_game->last_turn != 'p'){
+    else if(curr_game->game_state == 2 && curr_game->last_turn == 'v'){
         temp = removeCard(&curr_game->deck, 0);
         check_empty_deck(curr_game);
         addCard(&(curr_game->game[player_index].cards), temp.color, temp.value);
 
         //for message
         addCard(card_arr, temp.color, temp.value);
+
+        temp = removeCard(&curr_game->deck, 0);
+        check_empty_deck(curr_game);
+        addCard(&(curr_game->game[player_index].cards), temp.color, temp.value);
+
+        //for message
+        addCard(card_arr, temp.color, temp.value);
+    //    *take_count = 1;
+        *take_count = 2;
+
+        curr_game->game_state = 1;
+        change_player(curr_game, player_id);
+        freeCardList(&take);
+        curr_game->last_turn = 't';
+        return 1;
+    }
+    else if(curr_game->game_state == 2 && curr_game->last_turn != 'p'){
+        temp = removeCard(&curr_game->deck, 0);
+        check_empty_deck(curr_game);
+        addCard(&(curr_game->game[player_index].cards), temp.color, temp.value);
+
+        //for message
+    //    addCard(card_arr, temp.color, temp.value);
+
+    //    temp = removeCard(&curr_game->deck, 0);
+    //    check_empty_deck(curr_game);
+    //    addCard(&(curr_game->game[player_index].cards), temp.color, temp.value);
+
+        //for message
+        addCard(card_arr, temp.color, temp.value);
         *take_count = 1;
+    //    *take_count = 2;
 
         curr_game->game_state = 1;
         change_player(curr_game, player_id);
