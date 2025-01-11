@@ -277,6 +277,10 @@ public class GameWindow extends JPanel{
     	JOptionPane.showMessageDialog(GameWindow.this,"Start of the game failed, not enough players", "Start fail", JOptionPane.WARNING_MESSAGE);
     }
     
+    public void failDeckEmpty() {
+    	JOptionPane.showMessageDialog(GameWindow.this,"Deck for taking card does not have enough cards, please play", "Empty deck", JOptionPane.WARNING_MESSAGE);
+    }
+    
     public void restart() {
     	//players
         players = new ArrayList<>();
@@ -724,8 +728,12 @@ public class GameWindow extends JPanel{
 	        FontMetrics fm = g2d.getFontMetrics();
 	        textX = textX + spacing;
 	        textY = listY + ((listHeight + fm.getAscent()) / 2 - fm.getDescent());
+	        if(player.getId() == this.nextPlayer) {
+	        	g2d.setColor(new Color(245, 87, 66));
+	        }
 	        g2d.drawString(text, textX, textY);
 	        textX = textX + fm.stringWidth(text);
+	        g2d.setColor(new Color(0, 0, 0));
         }
     }
     

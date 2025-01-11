@@ -186,16 +186,21 @@ public class ClientSocket extends Thread {
     				String card = message[i+4];
     				//char[] cardChars = card.toCharArray();
     				//card.substring(0, 0);
-    				if(Integer.parseInt(card.substring(0, 1)) < 1 || Integer.valueOf(card.substring(0, 1)) > 4) {
+    				try {
+	    				if(Integer.parseInt(card.substring(0, 1)) < 1 || Integer.valueOf(card.substring(0, 1)) > 4) {
+	    					this.running = false;
+	    					System.err.println("Error: Message not recognised!  Disconnecting");
+	    				}
+	    				else if(Integer.valueOf(card.substring(2, 3)) < 1 || Integer.valueOf(card.substring(2, 3)) > 8) {
+	    					this.running = false;
+	    					System.err.println("Error: Message not recognised!  Disconnecting");
+	    				}
+	    				else {
+	    					game.getCard(card);
+	    				}
+    				} catch(NumberFormatException e) {
     					this.running = false;
-    					System.err.println("Error: Message not recognised!");
-    				}
-    				else if(Integer.valueOf(card.substring(2, 3)) < 1 || Integer.valueOf(card.substring(2, 3)) > 8) {
-    					this.running = false;
-    					System.err.println("Error: Message not recognised!");
-    				}
-    				else {
-    					game.getCard(card);
+    					System.err.println("Error: Message not recognised! Disconnecting");
     				}
     				
     				//game.getCard(card);
@@ -211,6 +216,11 @@ public class ClientSocket extends Thread {
     	else if(message[1].equals("err")) {
     		if(message[2].equals("p")) {
     			game.returnMove();
+    		}
+    		if(message[2].equals("t")) {
+    			if(Integer.valueOf(message[3]) == 11) {
+        			game.failDeckEmpty();
+        		}
     		}
     	}
     }
