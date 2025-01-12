@@ -19,13 +19,15 @@ void send_take(card_list* takes, int socket);
 
 int inform_win(Room* room);
 
+void inform_rejoin(player* player, Room* room, int p_count);
+
 int handle_connect(char* message, char* player_name);
 
 int handle_start(char* message, int* p_id);
 
 int handle_join(char* message, int* room_id, int* player_id);
 
-int handle_rejoin(char* message);
+int handle_rejoin(char* message, int* player_id);
 
 int handle_create(char* message);
 
@@ -41,7 +43,7 @@ int handle_playing(char* message, char card[], int* player_id, int* color);
 
 int handle_turn(char* message, char card[], int* player_id, int* color);
 
-int handle_ping(char* message);
+int handle_ping(char* message, int* player_id);
 
 int handler(char* message);
 

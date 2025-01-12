@@ -2,6 +2,7 @@
 #define SERVER_PLAYER_LIST_H
 
 #include "card_list.h"
+#include <pthread.h>
 
 #define CAPACITY 100
 #define MAX_NAME_LENGTH 50
@@ -14,6 +15,9 @@ typedef struct {
     int state;
     int room_id;
     int socket;
+    long int time;
+    pthread_t ping;
+    int responded;
 } player;
 
 typedef struct {

@@ -30,8 +30,46 @@ void infrom_lobby(){
     }
 }
 
+void* handle_ping_thread(void* arg){
+    int p_id = *(int*)arg;
+    //player* plr = get_player(&Players, p_id);
+    while(1){
+        player* plr = get_player(&Players, p_id);
+        /*
+        if(plr->responded == -1){
+            break;
+        }
+        write(plr->socket, "ping|server|\n", 14);
+        plr->responded = 0;
+        sleep(5);
+        */
+        
+        //printf("%ld\n", (plr->time));
+        //printf("pingu\n");
+         //write(plr->socket, "ping|server|\n", 14);
+         if(plr->responded == 1){
+            time(&plr->time);
+         }
+         write(plr->socket, "ping|server|\n", 14);
+         plr->responded = 0;
+         long int now;
+         time(&now);
+         //printf("%ld\n", (now - plr->time));
+         if((now - plr->time) > 10){
+            plr->state = 3;
+         }
+         if((now - plr->time) > 45){
+            //printf("diss: %d\n", plr->id);
+            close(plr->socket);
+            plr->responded = -1;
+            break;
+         }
+         sleep(5);
+    }
+}
+
 // Function to handle incoming client connections
-void *handle_client(void *arg) {
+void* handle_client(void *arg) {
     int client_socket = *(int *)arg;
     free(arg);
     char* token;
@@ -67,13 +105,18 @@ void *handle_client(void *arg) {
                     .socket = client_socket,
                     .state = 1,
                     .room_id = -1,
-                    .card_count = 0
+                    .card_count = 0,
+                    .responded = 1
             };
             strcpy(player.name, name);
             add_player(&Players, player);
             free_player_id++;
 
-            //TODO ping thread
+            //ping thread
+            pthread_create(&player.ping, NULL, handle_ping_thread, &player.id);
+            pthread_detach(player.ping);
+            //player.time = 0;
+            time(&player.time);
 
             char message[30] = "connect|ok|";
             char p_id[6];
@@ -90,12 +133,6 @@ void *handle_client(void *arg) {
 
     while ((bytes_read = read(client_socket, buffer, sizeof(buffer))) > 0) {
         buffer[bytes_read] = '\0';
-
-        //TODO dis
-        //TODO leave
-        //TODO turn
-        //TODO ping
-        //TODO rejoin
 
     // create
         if (strncmp(buffer, "create|", 7) == 0) {
@@ -275,6 +312,11 @@ void *handle_client(void *arg) {
                 continue;
             }
 
+            if(room->game->started == 1){
+                write(client_socket, "start|err|3|\n", 14);
+                continue;
+            }
+
             //check if room atleast 2 players
             int count = 0;
             for(int i = 0; i < MAX_PLAYERS; i++){
@@ -403,6 +445,85 @@ void *handle_client(void *arg) {
 
             }
 
+        } else if (strncmp(buffer, "ping|", 5) == 0){
+            int player_id;
+            int ping_val = handle_ping(buffer, &player_id);
+            player* player;
+
+            if(ping_val == 1){
+                player = get_player(&Players, player_id);
+                if(player->responded == -1){
+                    write(client_socket, "dis|ok|\n", 9);
+                    close(client_socket);
+                    return NULL;
+                }
+                else{
+                    write(client_socket, "ping|ok|\n", 10);
+                }
+            } else if(ping_val == 2){
+                player = get_player(&Players, player_id);
+                if(player->responded == -1){
+                    write(client_socket, "dis|ok|\n", 9);
+                    close(client_socket);
+                    return NULL;
+                }
+                player->responded = 1;
+                player->state = 1;
+                //player->time = 0;
+                time(&player->time);
+                //player->time = 0;
+            }else{
+                write(client_socket, "dis|ok|\n", 9);
+                close(client_socket);
+                return NULL;
+            }
+/*
+            printf("%ld\n", player->time);
+
+            if(player->responded == 0){
+                player->time += 1;
+                player->state = 3;
+                if(player->time > 10){
+                    player->responded = -1;
+                    write(client_socket, "dis|ok|\n", 9);
+                    close(client_socket);
+                    return NULL;
+                }
+            }
+*/
+        }else if (strncmp(buffer, "rejoin|", 7) == 0){
+            int player_id;
+            player* player;
+
+            if(handle_rejoin(buffer, &player_id)){
+                player = get_player(&Players, player_id);
+                time(&player->time);
+                player->responded = 1;
+                player->state = 1;
+
+                if(player->room_id >= 0){
+                    Room* room = get_room(&Rooms, player->room_id);
+                    if(room->game->started == 0){
+                        continue;
+                    } 
+                    int count = 0;
+                    for(int i = 0; i < MAX_PLAYERS; i++){
+                        if(room->players[i].id != -1){
+                            count++;
+                        }
+                    }
+                    inform_rejoin(player, room, count);
+                    inform_status(room, count);
+                }
+                else{
+                    infrom_lobby();
+                }
+
+            }else{
+                write(client_socket, "dis|ok|\n", 9);
+                close(client_socket);
+                return NULL;
+            }
         }
     }
 
