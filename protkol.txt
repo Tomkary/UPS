@@ -1,81 +1,76 @@
+Klient + odpovědi serveru:
 
-KLIENT + ODPOVEDI
+Připojení k serveru
+	connect|string(nick)|\n								-> connect|honza|\n
+	connect|ok|int()player id|\n							-> connect|ok|1|\n
+	connect|err|int(err id)|\n							-> connect|err|2|\n
+Připojení do místnosti
+	join|int(room id)|player id|\n							-> join|14|5|\n
+	join|ok|\n									-> join|ok|\n
+	join|err|id|\n									-> join|err|1|\n
+Vytvoření místnosti
+	create|\n									-> create|\n
+	create|ok|\n									-> create|ok|\n
+	create|err|id|\n								-> create|err|1|\n
+Opuštění místnosti
+	leave|int(player id)|\n								-> leave|3|\n
+	leave|ok|/n									-> leave|ok|\n
+	leave|err|id|\n									-> leave|err|3|\n
+Strat hry
+	start|int(player id)|\n								-> start|5|\n
+	start|int(card count)|cards[]|int(player count)|int(id);string(player name)|\n	-> start|4|2_5|1_5|3_5|4_5|2|1;honza|3;Jan|\n
+	start|err|id|\n									-> start|err|2|\n
+Tahy:
+Zahraje kartu
+	turn|p|string(card)|int(color change)|int(player id)|\n				-> turn|p|3_7|0|4|\n
+	turn|ok|p|\n									-> turn|ok|\n
+	turn|err|p|id|\n								-> turn|err|p|4|\n
+Bere kartu/y
+	turn|t|int(player id)|\n							-> turn|t|1|\n
+	turn|ok|t|int(card count)|string[](cards)|\n					-> turn|ok|4|1_2|2_3|4_5|4_1|\n
+	turn|err|t|id|\n								-> turn|err|t|4|\n
+Stojí na eso
+	turn|s|int(player id)|\n							-> turn|s|1|\n
+	turn|ok|s|\n									-> turn|ok|\n
+	turn|err|s|id|\n								-> turn|err|s|4|\n
 
-//connect to the server
-connect|string(nick)\n						-> connect|honza\n
-    connect|ok\n
-    connect|err(id)\n
+Server
 
-//connect to the room
-join|int(room id)\n						-> join|14\n
-    join|ok|int(player id)\n					-> join|ok|7\n
-    join|err(id)\n
+Stav hry	
+status|int(player count)|int(id);int(card count);int(status)|int(game state)|int(color change)|string(last card)|int(next player id)\n			
+-> status|2|1;5;1|2;2;1|1|0|2_5|7|\n
 
-//crate a new room
-create|string(name)\n						-> create|my_room\n
-	create|ok\n
-		lobby
-	create|err(id)\n
+Vylistování místností
+	lobby|int(count)|room IDs|\n 							-> lobby|3|10|4|1|\n
+Oznámení výherce
+	win|int(player id)|\n								-> win|4|\n
 
-//leave room
-leave\n
-    nic
+------------------------------------------------------------------------------------------------------------
 
-//pause the game 
-pause|start|int(player id)\n					-> pause|start|3\n
-    nic
+Pingování:
+klient
+	ping|int(player id)|\n								->ping|1|\n
+	ping|ok|\n									->ping|ok|\n
+server
+	ping|server|\n									->ping|server|\n
+	ping|ok|int(player id)|\n							->ping|ok|1|\n
 
-//end pause
-pause|end|int(player id)\n					-> pause|end|3\n
-    status
-
-//possible turns
-turn|char(takes)|\n						-> turn|t\n
-    turn|ok|int(card count)|string[](cards)\n			-> turn|ok|4|1_2|2_3|4_5|4_1\n
-	status
-    turn|err(id)\n		
-turn|char(not playing(ace))\n					-> turn|s\n
-    turn|ok\n							-> turn|ok\n
-	status
-    turn|err(id)\n
-turn|char(hraje)|string(karta)|int(color change)\n		-> turn|p|3_7|0\n
-    turn|ok\n							-> turn|ok\n
-	status
-    turn|err(id)\n
-
-
-SERVER
-
-//state of the game - stats of each player, next player, last played card, state of the game(what the next trun will look like)
-status|int(player count)|string(player name);int(card count);int(status)|int(state)|int(color change)|string(last card)|int(next player id)\n			
-								-> status|2|honza;5;1|pepa;2;1|1|0|2_5|7\n
-
-//sends all the availabel rooms(name, id)
-lobby|int(count)|room[]\n 					-> lobby|3|room1;10|room2;4|room3;1\n
-
-//tell players the game started
-start\n
-
-//tell players the game ended and annouce winner
-win|int(player id)\n						-> win|4\n
-
-//tell all players that someone paused the game
-pause\n
+Obnovení klient:
+	rejoin|int(player id)|\n							->rejoin|1|\n
+	rejoin|ok|\n									->rejoin|ok|\n
 
 
-ERRORS
+------------------------------------------------------------------------------------------------------------
+Chyby
 ID: 
-    1 - failed to connect (player name already taken)
-    2 - room is full
-    3 - game already started
-    4 - cannot create room
-    5 - your move is agianst the rules
-    6 - other player is playing
-    7 - game is paused
-    8 - room does not exists
-    9 -
-    10 - unknown message
-
-
-
+1.	failed to connect (player name already taken)
+2.	room is full
+3.	game already started
+4.	room join failed
+5.	cannot create room
+6.	your move is agianst the rules
+7.	not in room
+8.	game is paused
+9.	cannot leave room
+10.	unknown message
 

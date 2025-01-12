@@ -13,6 +13,8 @@ public class ClientSocket extends Thread {
     private LoginWindow login;
     private LobbyWindow lobby;
     private GameWindow game;
+    private boolean pingRec = true;
+    private long time = 0;
 
     public ClientSocket(String serverIp, int serverPort) {
         this.serverIp = serverIp;
@@ -36,13 +38,15 @@ public class ClientSocket extends Thread {
             if (in != null) in.close();
             socket.close();
             System.out.println("Disconnected from the server.");
+            lobby.changePanel(login);
+            game.restart();
         }
     }
 
     public synchronized void sendMessage(String message) {
         if (out != null) {
             out.println(message);
-            System.out.println("Sent: " + message);
+   //         System.out.println("Sent: " + message);
         } else {
             System.out.println("Cannot send message. Not connected to the server.");
         }
@@ -50,10 +54,23 @@ public class ClientSocket extends Thread {
 
     public void startPing(int id) {
         new Thread(() -> {
+        	time = System.currentTimeMillis();
             while (running) {
                 try {
-                    Thread.sleep(5000);
-                    sendMessage("ping|"+id+"|\n");
+                	if(!pingRec) {
+                		sendMessage("rejoin|"+id+"|\n");
+                		if(System.currentTimeMillis() - time >= 45000) {
+                			running = false;
+                			break;
+                		}
+                		Thread.sleep(5000);
+                	}else {        		
+	                    //sendMessage("ping|"+id+"|\n");
+                		sendMessage("ping|"+id+"|\n");
+	                    pingRec = false;
+	                    time = System.currentTimeMillis();
+	                    Thread.sleep(4000);
+                	}
                 } catch (InterruptedException e) {
                     System.err.println("Ping thread interrupted: " + e.getMessage());
                 }
@@ -64,7 +81,7 @@ public class ClientSocket extends Thread {
     public void receiveMessage(String message) {
     	//System.out.println(message);
     	message = message.trim();
-    	//System.out.println(message);
+ //   	System.out.println(message);
         if (message.contains("|")) {
         	
             String[] parts = message.split("\\|");
@@ -117,16 +134,29 @@ public class ClientSocket extends Thread {
             
             
         } else {
-            System.err.println("Error: Message does not contain the character '|'!");
+        	if(!message.equalsIgnoreCase("")) {
+        		System.err.println("Error: Message does not contain the character '|'!");
+        	}
         }
     }
     
     public void handleRejoin(String[] message) {
-    	//TODO
+    	if(message[1].equals("ok")) {
+    		pingRec = true;
+    		//lobby.changePanel(game);
+    		//game.repaint();
+    	}
     }
     
     public void handlePing(String[] message) {
-    	//TODO
+    	if(message[1].equals("ok")) {
+    		pingRec = true;
+    		time = System.currentTimeMillis();
+    	}
+    	else if(message[1].equals("server")) {
+    		//pingRec = true;
+    		sendMessage("ping|ok|"+lobby.getMyId()+"|"+'\n');
+    	}
     }
     
     public void handleEnd(String[] message) {
@@ -144,6 +174,7 @@ public class ClientSocket extends Thread {
     		game.failStart();
     	}
     	else {
+    		game.resetCards();
 	    	int cardCount = Integer.valueOf(message[1]);
 	    	String[] cards = new String[cardCount];
 	    	for(int i = 0; i < cardCount; i++) {
@@ -319,7 +350,8 @@ public class ClientSocket extends Thread {
             }
         } catch (IOException e) {
             if (running) {
-                System.err.println("Error during communication: " + e.getMessage());
+                //System.err.println("Error during communication: " + e.getMessage());
+            	running = false;
             }
         } finally {
             try {

@@ -265,6 +265,10 @@ public class GameWindow extends JPanel{
     	}
     }
     
+    public void resetCards() {
+    	this.cards = new ArrayList<>();
+    }
+    
     public int getMyId() {
 		return myId;
 	}
@@ -384,7 +388,7 @@ public class GameWindow extends JPanel{
         for (int i = 0; i < cards.size(); i++) {
             Card card = cards.get(i);
             if (card.contains(mouseX, mouseY)) {
-                System.out.println("Clicked on card: " + card.getName());
+                //System.out.println("Clicked on card: " + card.getName());
                 if(nextPlayer == myId) {
                 	draging = card;
                 }
