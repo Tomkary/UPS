@@ -531,7 +531,20 @@ void* handle_client(void *arg) {
     return NULL;
 }
 
-int main() {
+int main(int argc, char *argv[]) {
+    if (argc != 3) {
+        fprintf(stderr, "Usage: %s <IP> <PORT>\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    const char *ip_address = argv[1];
+    int port = atoi(argv[2]);
+
+    if (port <= 0 || port > 65535) {
+        fprintf(stderr, "Invalid port number. Must be between 1 and 65535.\n");
+        exit(EXIT_FAILURE);
+    }
+
     int server_socket, client_socket;
     struct sockaddr_in server_addr, client_addr;
     socklen_t addr_len = sizeof(client_addr);
@@ -542,15 +555,23 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
+    // Initialize server address structure
+    memset(&server_addr, 0, sizeof(server_addr));
     server_addr.sin_family = AF_INET;
-    server_addr.sin_addr.s_addr = INADDR_ANY;
-    server_addr.sin_port = htons(PORT);
+    server_addr.sin_port = htons(port);
 
-    // Bind and listen
+    if (inet_pton(AF_INET, ip_address, &server_addr.sin_addr) <= 0) {
+        perror("Invalid IP address");
+        exit(EXIT_FAILURE);
+    }
+
+    // Bind the socket to the specified IP and port
     if (bind(server_socket, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
         perror("Bind failed");
         exit(EXIT_FAILURE);
     }
+
+    // Listen for incoming connections
     if (listen(server_socket, MAX_CLIENTS) < 0) {
         perror("Listen failed");
         exit(EXIT_FAILURE);
