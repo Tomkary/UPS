@@ -442,7 +442,7 @@ public class GameWindow extends JPanel{
             listPlayers(g);
             drawSign(g, "WAITING");
         }
-        else if(disconnected = true){
+        else if(disconnected == true){
         	drawTable(g);
             listPlayers(g);
             drawSign(g, "opponent lost\n connection");
