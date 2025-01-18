@@ -261,8 +261,10 @@ public class GameWindow extends JPanel{
             Player player = players.get(i);
             if(player.getStatus().equals("disconnected")) {
             	disconnected = true;
+            	return;
             }
         }
+    	disconnected = false;
     }
     
     public void setWinner(int id) {
@@ -276,6 +278,7 @@ public class GameWindow extends JPanel{
     
     public void resetCards() {
     	this.cards = new ArrayList<>();
+    	this.players = new ArrayList<>();
     }
     
     public int getMyId() {
