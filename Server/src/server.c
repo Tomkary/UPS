@@ -57,6 +57,16 @@ void* handle_ping_thread(void* arg){
          //printf("%ld\n", (now - plr->time));
          if((now - plr->time) > 10){
             plr->state = 3;
+            /*
+            Room* room = get_room(&Rooms, plr->room_id);
+            int count = 0;
+            for(int i = 0; i < MAX_PLAYERS; i++){
+                if(room->players[i].id != -1){
+                    count++;
+                }
+            }
+            inform_status(room, count);
+            */
          }
          if((now - plr->time) > 45){
             //printf("diss: %d\n", plr->id);
@@ -77,9 +87,12 @@ void* handle_client(void *arg) {
     char buffer[256];
     int bytes_read;
 
+
     //TODO connect
 
     if((bytes_read = read(client_socket, buffer, sizeof(buffer))) > 0){
+    //while(1){
+      //  bytes_read = read(client_socket, buffer, sizeof(buffer));
         buffer[bytes_read] = '\0';
         if(strncmp(buffer, "connect|", 8) == 0) {
 
@@ -124,6 +137,51 @@ void* handle_client(void *arg) {
             strcat(message, p_id);
             write(client_socket, message, 18);
             send_lobby(&Rooms, client_socket);
+            //break;
+        }
+        else if (strncmp(buffer, "rejoin|", 7) == 0){
+            int player_id;
+            player* player;
+
+            //printf("re1\n");
+
+            if(handle_rejoin(buffer, &player_id)){
+                player = get_player(&Players, player_id);
+                time(&player->time);
+                player->responded = 1;
+                player->state = 1;
+                player->socket = client_socket;
+
+                //printf("re2\n");
+
+                if(player->room_id >= 0){
+                    Room* room = get_room(&Rooms, player->room_id);
+                    if(room->game->started != 0){
+                        //printf("re3\n");
+                        int count = 0;
+                        for(int i = 0; i < MAX_PLAYERS; i++){
+                            if(room->players[i].id != -1){
+                                count++;
+                            }
+                        }
+                        write(client_socket, "rejoin|ok|\n", 12);
+                        inform_rejoin(player, room, count);
+                        inform_status(room, count);
+                        //break;
+                    }
+                }
+                else{
+                    //printf("re4\n");
+                    write(client_socket, "rejoin|ok|\n", 12);
+                    infrom_lobby();
+                    //break;
+                }
+
+            }else{
+                write(client_socket, "dis|ok|\n", 9);
+                close(client_socket);
+                return NULL;
+            }
         }
         else{
             close(client_socket);
@@ -491,7 +549,7 @@ void* handle_client(void *arg) {
                 }
             }
 */
-        }else if (strncmp(buffer, "rejoin|", 7) == 0){
+        } else if (strncmp(buffer, "rejoin|", 7) == 0){
             int player_id;
             player* player;
 
@@ -503,17 +561,17 @@ void* handle_client(void *arg) {
 
                 if(player->room_id >= 0){
                     Room* room = get_room(&Rooms, player->room_id);
-                    if(room->game->started == 0){
-                        continue;
-                    } 
-                    int count = 0;
-                    for(int i = 0; i < MAX_PLAYERS; i++){
-                        if(room->players[i].id != -1){
-                            count++;
+                    if(room->game->started != 0){
+                        int count = 0;
+                        for(int i = 0; i < MAX_PLAYERS; i++){
+                            if(room->players[i].id != -1){
+                                count++;
+                            }
                         }
+                        write(client_socket, "rejoin|ok|\n", 12);
+                        inform_rejoin(player, room, count);
+                        inform_status(room, count);
                     }
-                    inform_rejoin(player, room, count);
-                    inform_status(room, count);
                 }
                 else{
                     infrom_lobby();
@@ -526,6 +584,8 @@ void* handle_client(void *arg) {
             }
         }
     }
+
+    //printf("koncim");
 
     close(client_socket);
     return NULL;
@@ -583,7 +643,9 @@ int main(int argc, char *argv[]) {
     Players = create_player_list(20);
 
     // Accept clients
-    while ((client_socket = accept(server_socket, (struct sockaddr *)&client_addr, &addr_len)) >= 0) {
+  //  while ((client_socket = accept(server_socket, (struct sockaddr *)&client_addr, &addr_len)) >= 0) {
+    while(1){
+        client_socket = accept(server_socket, (struct sockaddr *)&client_addr, &addr_len);
         int *client_socket_ptr = malloc(sizeof(int));
         *client_socket_ptr = client_socket;
 
