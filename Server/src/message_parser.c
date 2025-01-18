@@ -233,6 +233,60 @@ void inform_rejoin(player* player, Room* room, int p_count){
             strcat(message, "\n");
             int length = strlen(message);
             write(player->socket, message, length);
+
+            //-------------------------------------//
+
+    for(int i = 0; i < MAX_PLAYERS; i++){
+
+        strcpy(message, "status|");
+        strcpy(count, "\0");
+        //message = "status|";
+        //count[2];
+        sprintf(count, "%d", p_count);
+        strcat(message, count);           
+        strcat(message, "|");
+
+        if(room->players[i].id != -1){
+            for(int k = 0; k < MAX_PLAYERS; k++){
+                char info[4];
+                if(room->players[k].id != -1){
+                    sprintf(info, "%d", room->players[k].id);
+                    strcat(message, info);
+                    strcat(message, ";");
+                    sprintf(info, "%d", room->players[k].card_count);
+                    strcat(message, info);
+                    strcat(message, ";");
+                    sprintf(info, "%d", room->players[k].state);
+                    strcat(message, info);
+                    strcat(message, "|");
+                }
+            }
+
+            char game_info[4];
+            char card[2];
+            sprintf(game_info, "%d", room->game->game_state);
+            strcat(message, game_info);
+            strcat(message, "|");
+            sprintf(game_info, "%d", room->game->change_color);
+            strcat(message, game_info);
+            strcat(message, "|");
+
+            sprintf(card, "%d", room->game->last_played.color);
+            strcat(message, card);
+            strcat(message, "_");
+            sprintf(card, "%d", room->game->last_played.value);
+            strcat(message, card);                
+            strcat(message, "|");
+
+            sprintf(game_info, "%d", room->game->current_player_id);
+            strcat(message, game_info);
+            strcat(message, "|");
+
+            strcat(message, "\n");
+            int length = strlen(message);
+            write(room->players[i].socket, message, length);
+        }
+    }
 }
 
 

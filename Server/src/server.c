@@ -55,18 +55,21 @@ void* handle_ping_thread(void* arg){
          long int now;
          time(&now);
          //printf("%ld\n", (now - plr->time));
-         if((now - plr->time) > 10){
+         if((now - plr->time) > 4){
             plr->state = 3;
-            /*
+            
             Room* room = get_room(&Rooms, plr->room_id);
             int count = 0;
             for(int i = 0; i < MAX_PLAYERS; i++){
                 if(room->players[i].id != -1){
                     count++;
                 }
+                if(room->players[i].id == plr->id){
+                    room->players[i].state = 3;
+                }
             }
             inform_status(room, count);
-            */
+            
          }
          if((now - plr->time) > 45){
             //printf("diss: %d\n", plr->id);
@@ -163,7 +166,14 @@ void* handle_client(void *arg) {
                             if(room->players[i].id != -1){
                                 count++;
                             }
+                            if(room->players[i].id == player->id){
+                                room->players[i].state = 1;
+                                player->card_count = room->players[i].card_count;
+                                player->cards = room->players[i].cards;
+                                //player = &room->players[i];
+                            }
                         }
+                        //printf("id: %d", player->id);
                         write(client_socket, "rejoin|ok|\n", 12);
                         inform_rejoin(player, room, count);
                         inform_status(room, count);
@@ -549,40 +559,8 @@ void* handle_client(void *arg) {
                 }
             }
 */
-        } else if (strncmp(buffer, "rejoin|", 7) == 0){
-            int player_id;
-            player* player;
-
-            if(handle_rejoin(buffer, &player_id)){
-                player = get_player(&Players, player_id);
-                time(&player->time);
-                player->responded = 1;
-                player->state = 1;
-
-                if(player->room_id >= 0){
-                    Room* room = get_room(&Rooms, player->room_id);
-                    if(room->game->started != 0){
-                        int count = 0;
-                        for(int i = 0; i < MAX_PLAYERS; i++){
-                            if(room->players[i].id != -1){
-                                count++;
-                            }
-                        }
-                        write(client_socket, "rejoin|ok|\n", 12);
-                        inform_rejoin(player, room, count);
-                        inform_status(room, count);
-                    }
-                }
-                else{
-                    infrom_lobby();
-                }
-
-            }else{
-                write(client_socket, "dis|ok|\n", 9);
-                close(client_socket);
-                return NULL;
-            }
-        }
+        } 
+        
     }
 
     //printf("koncim");
