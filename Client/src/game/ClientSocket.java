@@ -206,7 +206,9 @@ public class ClientSocket extends Thread {
     
     public void handleWin(String[] message) {
     	int winId = Integer.valueOf(message[1]);
-    	game.setWinner(winId);
+    	if(game.ended == -1) {
+    		game.setWinner(winId);
+    	}
     	game.repaint();
     }
     
