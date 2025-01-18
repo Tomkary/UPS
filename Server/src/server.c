@@ -170,6 +170,7 @@ void* handle_client(void *arg) {
                                 room->players[i].state = 1;
                                 player->card_count = room->players[i].card_count;
                                 player->cards = room->players[i].cards;
+                                room->players[i].socket = player->socket;
                                 //player = &room->players[i];
                             }
                         }

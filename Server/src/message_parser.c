@@ -235,7 +235,7 @@ void inform_rejoin(player* player, Room* room, int p_count){
             write(player->socket, message, length);
 
             //-------------------------------------//
-
+/*
     for(int i = 0; i < MAX_PLAYERS; i++){
 
         strcpy(message, "status|");
@@ -287,6 +287,7 @@ void inform_rejoin(player* player, Room* room, int p_count){
             write(room->players[i].socket, message, length);
         }
     }
+*/
 }
 
 
