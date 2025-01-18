@@ -10,6 +10,7 @@ public class ClientSocket extends Thread {
     private PrintWriter out;
     private BufferedReader in;
     private boolean running = false;
+    private boolean end = false;
     private LoginWindow login;
     private LobbyWindow lobby;
     private GameWindow game;
@@ -23,11 +24,17 @@ public class ClientSocket extends Thread {
 
     public synchronized void connect() throws IOException {
         if (socket == null || socket.isClosed()) {
-            socket = new Socket(serverIp, serverPort);
-            out = new PrintWriter(socket.getOutputStream(), true);
-            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            running = true;
-            System.out.println("Connected to the server at " + serverIp + ":" + serverPort);
+        	try{
+	            socket = new Socket(serverIp, serverPort);
+	            out = new PrintWriter(socket.getOutputStream(), true);
+	            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+	            running = true;
+	            end = false;
+	            System.out.println("Connected to the server at " + serverIp + ":" + serverPort);
+        	}
+        	catch(NoRouteToHostException e) {
+        		System.out.println("Disconnected from the server.");
+        	}
         }
     }
 
@@ -46,7 +53,7 @@ public class ClientSocket extends Thread {
     public synchronized void sendMessage(String message) {
         if (out != null) {
             out.println(message);
-   //         System.out.println("Sent: " + message);
+            System.out.println("Sent: " + message);
         } else {
             System.out.println("Cannot send message. Not connected to the server.");
         }
@@ -55,12 +62,40 @@ public class ClientSocket extends Thread {
     public void startPing(int id) {
         new Thread(() -> {
         	time = System.currentTimeMillis();
-            while (running) {
+            while (!end) {
                 try {
                 	if(!pingRec) {
-                		sendMessage("rejoin|"+id+"|\n");
-                		if(System.currentTimeMillis() - time >= 45000) {
+                		if(System.currentTimeMillis() - time >= 4000 && System.currentTimeMillis() - time < 6000) {
+                			try {
+								socket.close();
+							} catch (IOException e) {
+								System.err.println("Cannot close: " + e.getMessage());
+							}
+                			if(game.getStarted()) {
+                				game.disconnected();
+                			}
+                			else {
+                				lobby.disconnected();
+                			}
+                		}
+                		try {
+							connect();
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+                		if(socket.isConnected()) {
+                			running = true;
+                			sendMessage("rejoin|"+id+"|\n");
+                		}
+                		if(System.currentTimeMillis() - time >= 60000) {
+                			System.err.println("konec");
                 			running = false;
+                			end = true;
+                			try {
+								disconnect();
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
                 			break;
                 		}
                 		Thread.sleep(5000);
@@ -81,7 +116,7 @@ public class ClientSocket extends Thread {
     public void receiveMessage(String message) {
     	//System.out.println(message);
     	message = message.trim();
- //   	System.out.println(message);
+    	System.out.println(message);
         if (message.contains("|")) {
         	
             String[] parts = message.split("\\|");
@@ -143,6 +178,12 @@ public class ClientSocket extends Thread {
     public void handleRejoin(String[] message) {
     	if(message[1].equals("ok")) {
     		pingRec = true;
+    		if(game.getStarted()) {
+    			game.reconnected();
+    		}
+    		else {
+    			lobby.reconnected();
+    		}
     		//lobby.changePanel(game);
     		//game.repaint();
     	}
@@ -336,30 +377,34 @@ public class ClientSocket extends Thread {
 
     @Override
     public void run() {
-        try {
-            while (running) {
-                if (in != null) {
-                    String serverMessage = in.readLine();
-                    if (serverMessage != null) {
-                        receiveMessage(serverMessage);
-                    }
-                }
-                if(socket.isClosed()) {
-                	running = false;
-                }
-            }
-        } catch (IOException e) {
-            if (running) {
-                //System.err.println("Error during communication: " + e.getMessage());
-            	running = false;
-            }
-        } finally {
+    	while(!end) {
+    		//System.out.println("nekoncim");
+	        try {
+	            while (running) {
+	                if (in != null) {
+	                    String serverMessage = in.readLine();
+	                    if (serverMessage != null) {
+	                        receiveMessage(serverMessage);
+	                    }
+	                }
+	                if(socket.isClosed()) {
+	                	running = false;
+	                }
+	            }
+	            Thread.sleep(100);
+	        } catch (IOException | InterruptedException e) {
+	            if (running) {
+	                System.err.println("Error during communication: " + e.getMessage());
+	            	running = false;
+	            }
+	        }
+    	}
+    	System.err.println("koncim poslouchani");
             try {
                 disconnect();
             } catch (IOException e) {
                 System.err.println("Error during disconnect: " + e.getMessage());
             }
-        }
     }
     
     public String getServerIp() {

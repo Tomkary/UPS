@@ -127,6 +127,13 @@ public class LobbyWindow extends JPanel {
 	public void setMyId(int myId) {
 		this.myId = myId;
 	}
+	public void disconnected() {
+    	JOptionPane.showMessageDialog(LobbyWindow.this,"Lost connection to the server, trying to reconnect", "Disconnected", JOptionPane.ERROR_MESSAGE);
+    }
+	
+	public void reconnected() {
+    	JOptionPane.showMessageDialog(LobbyWindow.this,"Reconnect successful", "Reconnect", JOptionPane.INFORMATION_MESSAGE);
+    }
 	
 	public void cannotCreate() {
 		JOptionPane.showMessageDialog(LobbyWindow.this,"Room creation failed, please try again", "Room creation failed", JOptionPane.WARNING_MESSAGE);

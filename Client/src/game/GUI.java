@@ -66,7 +66,7 @@ public class GUI extends JFrame implements Runnable{
 		return login;
 	}
 	
-	
+/*	
 	private void prepTexture() {
 	    try {
 	        // Load texture for the table
@@ -85,7 +85,7 @@ public class GUI extends JFrame implements Runnable{
 	    }
 	}
 
-/*
+*/
 	private void prepTexture() {
 		try {
             // Load texture for the table
@@ -103,7 +103,7 @@ public class GUI extends JFrame implements Runnable{
             e.printStackTrace();
         }
    }
-*/	
+	
 	public void setClient(ClientSocket client) {
 		this.client = client;
 	}

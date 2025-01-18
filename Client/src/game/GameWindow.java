@@ -77,6 +77,8 @@ public class GameWindow extends JPanel{
 	
 	int ended = -1;
 	
+	private boolean disconnected = false;
+	
 	private ClientSocket client;
 	
 
@@ -254,6 +256,13 @@ public class GameWindow extends JPanel{
     	this.newColor = color;
     	nextPlayer = next;
     	playedCard.setName(card);
+    	
+    	for (int i = 0; i < players.size(); i++) {
+            Player player = players.get(i);
+            if(player.getStatus().equals("disconnected")) {
+            	disconnected = true;
+            }
+        }
     }
     
     public void setWinner(int id) {
@@ -285,6 +294,14 @@ public class GameWindow extends JPanel{
     	JOptionPane.showMessageDialog(GameWindow.this,"Deck for taking card does not have enough cards, please play", "Empty deck", JOptionPane.WARNING_MESSAGE);
     }
     
+    public void disconnected() {
+    	JOptionPane.showMessageDialog(GameWindow.this,"Lost connection to the server, trying to reconnect", "Disconnected", JOptionPane.ERROR_MESSAGE);
+    }
+    
+    public void reconnected() {
+    	JOptionPane.showMessageDialog(GameWindow.this,"Reconnect successful", "Reconnect", JOptionPane.INFORMATION_MESSAGE);
+    }
+    
     public void restart() {
     	//players
         players = new ArrayList<>();
@@ -312,6 +329,8 @@ public class GameWindow extends JPanel{
     	color = 5;
     	changing = false;
     	ended = -1;
+    	
+    	disconnected = false;
     }
 
 	public void setMyId(int myId) {
@@ -320,6 +339,10 @@ public class GameWindow extends JPanel{
     
     public void setStarted(boolean started) {
 		this.started = started;
+	}
+    
+    public boolean getStarted() {
+		return this.started;
 	}
 
 	public void createCards(String[] cards) {
@@ -418,6 +441,11 @@ public class GameWindow extends JPanel{
         	drawTable(g);
             listPlayers(g);
             drawSign(g, "WAITING");
+        }
+        else if(disconnected = true){
+        	drawTable(g);
+            listPlayers(g);
+            drawSign(g, "opponent lost\n connection");
         }
         else if(pause == true) {
         	drawTable(g);
