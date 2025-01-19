@@ -62,11 +62,11 @@ public class LoginWindow extends JPanel {
     	color = rd.nextInt(3) + 1;
     	
     	// Initialize and place form components
-        nick = new JTextField();
+        nick = new JTextField("Name");
         nick.setToolTipText("Nick");
-        ip = new JTextField();
+        ip = new JTextField("10.0.1.112");
         ip.setToolTipText("Server IP address");
-        port = new JTextField();
+        port = new JTextField("10020");
         port.setToolTipText("Port");
         login = new JButton("Connect");
 
@@ -224,6 +224,27 @@ public class LoginWindow extends JPanel {
              g2d.setPaint(texturePaint);
              g2d.fillRoundRect(formX, formY, formWidth, formHeight, 20, 20);
          }
+    	 
+    	 String text = "Name";
+     	 int fontSize = Math.min(getWidth(), getHeight()) / 45;
+         g2d.setFont(new Font("SansSerif", Font.BOLD, fontSize));
+        // FontMetrics fm = g2d.getFontMetrics();
+         int textX = formX + 20;
+         int textY = formY + formHeight / 9 - 5;
+         g2d.setColor(Color.BLACK);
+         g2d.drawString(text, textX, textY);
+         
+         text = "IP";
+         g2d.setFont(new Font("SansSerif", Font.BOLD, fontSize));
+         textY = formY + 3 * formHeight / 9 - 5;
+         g2d.setColor(Color.BLACK);
+         g2d.drawString(text, textX, textY);
+         
+         text = "Port";
+         g2d.setFont(new Font("SansSerif", Font.BOLD, fontSize));
+         textY = formY + 5 * formHeight / 9 - 5;
+         g2d.setColor(Color.BLACK);
+         g2d.drawString(text, textX, textY);
     	 
     	 nick.setBounds(formX + 20, formY + formHeight / 9, formWidth - 40, formHeight / 9);
          ip.setBounds(formX + 20, formY + 3 * formHeight / 9, formWidth - 40, formHeight / 9);

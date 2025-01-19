@@ -78,6 +78,7 @@ public class GameWindow extends JPanel{
 	int ended = -1;
 	
 	private boolean disconnected = false;
+	private boolean reconnect = false;
 	
 	private ClientSocket client;
 	
@@ -298,11 +299,15 @@ public class GameWindow extends JPanel{
     }
     
     public void disconnected() {
-    	JOptionPane.showMessageDialog(GameWindow.this,"Lost connection to the server, trying to reconnect", "Disconnected", JOptionPane.ERROR_MESSAGE);
+    	//JOptionPane.showMessageDialog(GameWindow.this,"Lost connection to the server, trying to reconnect", "Disconnected", JOptionPane.ERROR_MESSAGE);
+    	reconnect = true;
+    	repaint();
     }
     
     public void reconnected() {
-    	JOptionPane.showMessageDialog(GameWindow.this,"Reconnect successful", "Reconnect", JOptionPane.INFORMATION_MESSAGE);
+    	//JOptionPane.showMessageDialog(GameWindow.this,"Reconnect successful", "Reconnect", JOptionPane.INFORMATION_MESSAGE);
+    	reconnect = false;
+    	repaint();
     }
     
     public void restart() {
@@ -448,7 +453,11 @@ public class GameWindow extends JPanel{
         else if(disconnected == true){
         	drawTable(g);
             listPlayers(g);
-            drawSign(g, "opponent lost\n connection");
+            drawDisconnect(g, "opponent reconnecting");
+        }
+        else if(reconnect) {
+        	listPlayers(g);
+        	drawReconnect(g, "Reconnecting");
         }
         else if(pause == true) {
         	drawTable(g);
@@ -793,6 +802,62 @@ public class GameWindow extends JPanel{
 	      //darw text
 	         //String text = "PAUSED";
 	         int fontSize = Math.min(pauseWidth, pauseHeight) / 4;
+	         g2d.setFont(new Font("SansSerif", Font.BOLD, fontSize));
+	         FontMetrics fm = g2d.getFontMetrics();
+	         int textX = pauseX + ((pauseWidth - fm.stringWidth(text)) / 2);
+	         int textY = pauseY + ((pauseHeight + fm.getAscent()) / 2 - fm.getDescent());
+	         g2d.drawString(text, textX, textY);
+        }
+    }
+    
+    public void drawReconnect(Graphics g, String text) {
+    	Graphics2D g2d = (Graphics2D) g;
+        //pause panel dimensions
+        int pauseWidth = getWidth() / 6;
+        int pauseHeight = getHeight() / 6;
+        int pauseX = getWidth() / 2 - pauseWidth / 2;
+        int pauseY = getHeight() / 2 - pauseHeight / 2;
+        
+        if (backgroundTexture != null) {
+       	 //draw pause
+            TexturePaint texturePaint = new TexturePaint(backgroundTexture, new Rectangle(0, 0, getWidth(), getHeight()));
+            g2d.setPaint(texturePaint);
+            g2d.fillRoundRect(pauseX, pauseY, pauseWidth, pauseHeight, 20, 20);
+            g2d.setColor(new Color(33, 32, 32));
+            g2d.setStroke(new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
+	        g2d.drawRoundRect(pauseX, pauseY, pauseWidth, pauseHeight, 20, 20);
+	        
+	      //darw text
+	         //String text = "PAUSED";
+	         int fontSize = Math.min(pauseWidth, pauseHeight) / 20;
+	         g2d.setFont(new Font("SansSerif", Font.BOLD, fontSize));
+	         FontMetrics fm = g2d.getFontMetrics();
+	         int textX = pauseX + ((pauseWidth - fm.stringWidth(text)) / 2);
+	         int textY = pauseY + ((pauseHeight + fm.getAscent()) / 2 - fm.getDescent());
+	         g2d.drawString(text, textX, textY);
+        }
+    }
+    
+    public void drawDisconnect(Graphics g, String text) {
+    	Graphics2D g2d = (Graphics2D) g;
+        //pause panel dimensions
+    	int pauseWidth = getWidth() / 2;
+        int pauseHeight = getHeight() / 2;
+        int pauseX = getWidth() / 2 - pauseWidth / 2;
+        int pauseY = getHeight() / 2 - pauseHeight / 2;
+        
+        if (backgroundTexture != null) {
+       	 //draw pause
+            TexturePaint texturePaint = new TexturePaint(backgroundTexture, new Rectangle(0, 0, getWidth(), getHeight()));
+            g2d.setPaint(texturePaint);
+            g2d.fillRoundRect(pauseX, pauseY, pauseWidth, pauseHeight, 20, 20);
+            g2d.setColor(new Color(33, 32, 32));
+            g2d.setStroke(new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
+	        g2d.drawRoundRect(pauseX, pauseY, pauseWidth, pauseHeight, 20, 20);
+	        
+	      //darw text
+	         //String text = "PAUSED";
+	         int fontSize = Math.min(pauseWidth, pauseHeight) / 10;
 	         g2d.setFont(new Font("SansSerif", Font.BOLD, fontSize));
 	         FontMetrics fm = g2d.getFontMetrics();
 	         int textX = pauseX + ((pauseWidth - fm.stringWidth(text)) / 2);

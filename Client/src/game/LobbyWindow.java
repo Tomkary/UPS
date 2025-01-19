@@ -28,6 +28,8 @@ public class LobbyWindow extends JPanel {
     private ClientSocket client;
     
     private int myId = 0;
+    
+    private boolean reconnect = false;
 
     public LobbyWindow(JFrame mainFrame, JPanel nextWin, ClientSocket client, BufferedImage[][] cardTexture, BufferedImage backgroundTexture, BufferedImage backTexture) {
         setLayout(null); // Absolute positioning
@@ -72,7 +74,7 @@ public class LobbyWindow extends JPanel {
         add(scrollPane); // Add the scroll list
         add(joinButton); // Add the first button
         add(createButton);
-        add(disconnect);
+        //add(disconnect);
         
         
         // Action for OK button: Print selected item
@@ -128,11 +130,15 @@ public class LobbyWindow extends JPanel {
 		this.myId = myId;
 	}
 	public void disconnected() {
-    	JOptionPane.showMessageDialog(LobbyWindow.this,"Lost connection to the server, trying to reconnect", "Disconnected", JOptionPane.ERROR_MESSAGE);
+    	//JOptionPane.showMessageDialog(LobbyWindow.this,"Lost connection to the server, trying to reconnect", "Disconnected", JOptionPane.ERROR_MESSAGE);
+    	reconnect = true;
+    	repaint();
     }
 	
 	public void reconnected() {
-    	JOptionPane.showMessageDialog(LobbyWindow.this,"Reconnect successful", "Reconnect", JOptionPane.INFORMATION_MESSAGE);
+    	//JOptionPane.showMessageDialog(LobbyWindow.this,"Reconnect successful", "Reconnect", JOptionPane.INFORMATION_MESSAGE);
+		reconnect = false;
+    	repaint();
     }
 	
 	public void cannotCreate() {
@@ -187,10 +193,16 @@ public class LobbyWindow extends JPanel {
             g2d.fillRect(0, 0, getWidth(), getHeight());
         }
 
-        drawCards(g);
-        drawTitle(g);
-        drawForm(g);
-        revalidate();
+        if(reconnect) {
+        	drawSign(g, "Reconnecting");
+        }
+        else {
+        	drawCards(g);
+            drawTitle(g);
+            drawForm(g);
+            revalidate();
+        }
+
     }
 
     public void drawCards(Graphics g) {
@@ -264,6 +276,35 @@ public class LobbyWindow extends JPanel {
         joinButton.setBounds(formX + padding, formY + formHeight - 2 * padding, (formWidth - 3 * padding) / 2, formHeight / 10);
         disconnect.setBounds(this.getWidth() / 2 - (formWidth - 5 * padding) / 2, formY - 5 * joinButton.getHeight(), (formWidth - 5 * padding), formHeight / 10);
         createButton.setBounds(formX + formWidth - padding - joinButton.getWidth(), formY + formHeight - 2 * padding, (formWidth - 3 * padding) / 2, formHeight / 10);
+    }
+    
+    public void drawSign(Graphics g, String text) {
+
+   	 	Graphics2D g2d = (Graphics2D) g;
+        //pause panel dimensions
+        int pauseWidth = getWidth() / 6;
+        int pauseHeight = getHeight() / 6;
+        int pauseX = getWidth() / 2 - pauseWidth / 2;
+        int pauseY = getHeight() / 2 - pauseHeight / 2;
+        
+        if (form != null) {
+       	 //draw pause
+            TexturePaint texturePaint = new TexturePaint(form, new Rectangle(0, 0, getWidth(), getHeight()));
+            g2d.setPaint(texturePaint);
+            g2d.fillRoundRect(pauseX, pauseY, pauseWidth, pauseHeight, 20, 20);
+            g2d.setColor(new Color(33, 32, 32));
+            g2d.setStroke(new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
+	        g2d.drawRoundRect(pauseX, pauseY, pauseWidth, pauseHeight, 20, 20);
+	        
+	      //darw text
+	         //String text = "PAUSED";
+	         int fontSize = Math.min(pauseWidth, pauseHeight) / 20;
+	         g2d.setFont(new Font("SansSerif", Font.BOLD, fontSize));
+	         FontMetrics fm = g2d.getFontMetrics();
+	         int textX = pauseX + ((pauseWidth - fm.stringWidth(text)) / 2);
+	         int textY = pauseY + ((pauseHeight + fm.getAscent()) / 2 - fm.getDescent());
+	         g2d.drawString(text, textX, textY);
+        }
     }
 
 }
