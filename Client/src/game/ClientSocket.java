@@ -32,8 +32,9 @@ public class ClientSocket extends Thread {
 	            end = false;
 	            System.out.println("Connected to the server at " + serverIp + ":" + serverPort);
         	}
-        	catch(NoRouteToHostException e) {
-        		System.out.println("Disconnected from the server.");
+        	catch(NoRouteToHostException | ConnectException e) {
+        		//socket = null;
+        		System.out.println("Reconecting.");
         	}
         }
     }
@@ -53,7 +54,7 @@ public class ClientSocket extends Thread {
     public synchronized void sendMessage(String message) {
         if (out != null) {
             out.println(message);
-            System.out.println("Sent: " + message);
+            /System.out.println("Sent: " + message);
         } else {
             System.out.println("Cannot send message. Not connected to the server.");
         }
@@ -116,57 +117,60 @@ public class ClientSocket extends Thread {
     public void receiveMessage(String message) {
     	//System.out.println(message);
     	message = message.trim();
-    	System.out.println(message);
+    	//System.out.println(message);
         if (message.contains("|")) {
         	
             String[] parts = message.split("\\|");
 
-            if(parts[0].equals("connect")) {
-            	handleConnect(parts);
+            try {
+	            if(parts[0].equals("connect")) {
+	            	handleConnect(parts);
+	            }
+	            else if(parts[0].equals("lobby")) {
+	            	handleLobby(parts);
+	            }
+	            else if(parts[0].equals("create")) {
+	            	handleCreate(parts);
+	            }
+	            else if(parts[0].equals("dis")) {
+	            	handleDis(parts);
+	            }
+	            else if(parts[0].equals("join")) {
+	            	handleJoin(parts);
+	            }
+	            else if(parts[0].equals("leave")) {
+	            	handleLeave(parts);
+	            }
+	            else if(parts[0].equals("turn")) {
+	            	handleTurn(parts);
+	            }
+	            else if(parts[0].equals("status")) {
+	            	handleStatus(parts);
+	            }
+	            else if(parts[0].equals("start")) {
+	            	handleStart(parts);
+	            }
+	            else if(parts[0].equals("win")) {
+	            	handleWin(parts);
+	            }
+	            else if(parts[0].equals("ping")) {
+	            	handlePing(parts);
+	            }
+	            else if(parts[0].equals("rejoin")) {
+	            	handleRejoin(parts);
+	            }	            
+	            //      else if(parts[0].equals("end")) {
+	            //      	handleEnd(parts);
+	            //      }
+	            else {
+	                  System.err.println("Error: Message not recognised!");
+	                  System.out.println("----");
+	                  System.out.println(message);
+	                  System.out.println("----");
+	            }           
+            } catch (NumberFormatException e) {
+            	System.err.println("Error: Wrong format!");
             }
-            else if(parts[0].equals("lobby")) {
-            	handleLobby(parts);
-            }
-            else if(parts[0].equals("create")) {
-            	handleCreate(parts);
-            }
-            else if(parts[0].equals("dis")) {
-            	handleDis(parts);
-            }
-            else if(parts[0].equals("join")) {
-            	handleJoin(parts);
-            }
-            else if(parts[0].equals("leave")) {
-            	handleLeave(parts);
-            }
-            else if(parts[0].equals("turn")) {
-            	handleTurn(parts);
-            }
-            else if(parts[0].equals("status")) {
-            	handleStatus(parts);
-            }
-            else if(parts[0].equals("start")) {
-            	handleStart(parts);
-            }
-            else if(parts[0].equals("win")) {
-            	handleWin(parts);
-            }
-            else if(parts[0].equals("ping")) {
-            	handlePing(parts);
-            }
-            else if(parts[0].equals("rejoin")) {
-            	handleRejoin(parts);
-            }
-      //      else if(parts[0].equals("end")) {
-      //      	handleEnd(parts);
-      //      }
-            else {
-            	System.err.println("Error: Message not recognised!");
-            	System.out.println("----");
-            	System.out.println(message);
-            	System.out.println("----");
-            }
-            
             
         } else {
         	if(!message.equalsIgnoreCase("")) {
@@ -204,7 +208,7 @@ public class ClientSocket extends Thread {
     	lobby.changePanel(lobby);
     }
     
-    public void handleWin(String[] message) {
+    public void handleWin(String[] message) throws NumberFormatException{
     	int winId = Integer.valueOf(message[1]);
     	if(game.ended == -1) {
     		game.setWinner(winId);
@@ -212,13 +216,16 @@ public class ClientSocket extends Thread {
     	game.repaint();
     }
     
-    public void handleStart(String[] message) {
+    public void handleStart(String[] message) throws NumberFormatException{
     	if(message[1].equals("err")){
     		game.failStart();
     	}
     	else {
     		game.resetCards();
 	    	int cardCount = Integer.valueOf(message[1]);
+	    	if(cardCount < 0 || cardCount > 32) {
+	    		System.err.println("Error: Wrong format!");
+	    	}
 	    	String[] cards = new String[cardCount];
 	    	for(int i = 0; i < cardCount; i++) {
 	    		cards[i] = message[i+2];
@@ -227,6 +234,9 @@ public class ClientSocket extends Thread {
 	    	
 	    	int index = cardCount + 2;
 	    	int players = Integer.valueOf(message[index]);
+	    	if(players < 1 || players > 4) {
+	    		System.err.println("Error: Wrong format!");
+	    	}
 	    	for(int i = 1; i <= players; i++) {
 	    		String[] player = message[index+i].split(";");
 	    		game.addPlayer(Integer.valueOf(player[0]), player[1]);
@@ -238,8 +248,11 @@ public class ClientSocket extends Thread {
     	
     }
     
-    public void handleStatus(String[] message) {
+    public void handleStatus(String[] message) throws NumberFormatException{
     	int players = Integer.valueOf(message[1]);
+    	if(players < 1 || players > 4) {
+    		System.err.println("Error: Wrong format!");
+    	}
     	for(int i = 0; i < players; i++) {
     		String[] info = message[i+2].split(";");
     		game.updatePlayer(Integer.valueOf(info[0]), Integer.valueOf(info[1]), Integer.valueOf(info[2]));
@@ -248,36 +261,43 @@ public class ClientSocket extends Thread {
     	int color = Integer.valueOf(message[players + 3]);
     	String card = message[players + 4];
     	int nextId = Integer.valueOf(message[players + 5]);
+    	
+    	if(state < 0 || state > 4 || color < 0 || color > 4) {
+			System.err.println("Error: Wrong format!");
+		}
+    	if(Integer.parseInt(card.substring(0, 1)) < 1 || Integer.valueOf(card.substring(0, 1)) > 4) {
+    		System.err.println("Error: Wrong format!");
+    	}
+    	if(Integer.valueOf(card.substring(2, 3)) < 1 || Integer.valueOf(card.substring(2, 3)) > 8) {
+    		System.err.println("Error: Wrong format!");
+    	}
+    	
     	game.statusChange(state, color, nextId, card);
     	game.repaint();
     }
     
-    public void handleTurn(String[] message) {
+    public void handleTurn(String[] message) throws NumberFormatException{
     	if(message[1].equals("ok")) {
     		if(message[2].equals("t")) {
     			int cardCount = Integer.valueOf(message[3]);
+    			if(cardCount < 1 || cardCount > 8) {
+    				System.err.println("Error: Wrong format!");
+    			}
     			for(int i = 0; i < cardCount; i++) {
     				String card = message[i+4];
     				//char[] cardChars = card.toCharArray();
     				//card.substring(0, 0);
-    				try {
-	    				if(Integer.parseInt(card.substring(0, 1)) < 1 || Integer.valueOf(card.substring(0, 1)) > 4) {
-	    					this.running = false;
-	    					System.err.println("Error: Message not recognised!  Disconnecting");
-	    				}
-	    				else if(Integer.valueOf(card.substring(2, 3)) < 1 || Integer.valueOf(card.substring(2, 3)) > 8) {
-	    					this.running = false;
-	    					System.err.println("Error: Message not recognised!  Disconnecting");
-	    				}
-	    				else {
-	    					game.getCard(card);
-	    				}
-    				} catch(NumberFormatException e) {
-    					this.running = false;
-    					System.err.println("Error: Message not recognised! Disconnecting");
-    				}
-    				
-    				//game.getCard(card);
+	    			if(Integer.parseInt(card.substring(0, 1)) < 1 || Integer.valueOf(card.substring(0, 1)) > 4) {
+	    					//this.running = false;
+	    				System.err.println("Error: Wrong format!");
+	    			}
+	    			else if(Integer.valueOf(card.substring(2, 3)) < 1 || Integer.valueOf(card.substring(2, 3)) > 8) {
+	    				//this.running = false;
+	    				System.err.println("Error: Wrong format!");
+	    			}
+	    			else {
+	    				game.getCard(card);
+	    			}
     			}
     		}
     		else if(message[2].equals("s")) {
@@ -299,9 +319,12 @@ public class ClientSocket extends Thread {
     	}
     }
     
-    public void handleConnect(String[] message) {
+    public void handleConnect(String[] message) throws NumberFormatException{
     	if(message[1].equals("ok")) {
     		int id = Integer.valueOf(message[2]);
+    		if(id < 0 || id > 50) {
+    			System.err.println("Error: Wrong format!");
+    		}
     		lobby.setMyId(id);
     		game.setMyId(id);
     		login.changeLobby();
@@ -317,16 +340,23 @@ public class ClientSocket extends Thread {
     	}
     }
     
-    public void handleLobby(String[] message) {
+    public void handleLobby(String[] message) throws NumberFormatException{
     	int rooms = Integer.valueOf(message[1]);
+    	if(rooms < 0 || rooms > 20) {
+    		System.err.println("Error: Wrong format!");
+    	}
     	lobby.deleteRooms();
     	for(int i = 0; i < rooms; i++) {
-    		lobby.listRoom(Integer.valueOf(message[i + 2]));
+    		int id = Integer.valueOf(message[i + 2]);
+    		if(id < 0 || id > 20) {
+    			System.err.println("Error: Wrong format!");
+    		}
+    		lobby.listRoom(id);
     	}
     	lobby.repaint();
     }
     
-    public void handleCreate(String[] message) {
+    public void handleCreate(String[] message) throws NumberFormatException{
     	if(message[1].equals("err")) {
     		if(Integer.valueOf(message[2]) == 5) {
     			lobby.cannotCreate();
@@ -344,7 +374,7 @@ public class ClientSocket extends Thread {
     	}
     }
     
-    public void handleJoin(String[] message) {
+    public void handleJoin(String[] message) throws NumberFormatException{
     	if(message[1].equals("ok")) {
     		game.setStarted(false);
     		game.setMyId(lobby.getMyId());
@@ -364,7 +394,7 @@ public class ClientSocket extends Thread {
     	}
     }
     
-    public void handleLeave(String[] message) {
+    public void handleLeave(String[] message) throws NumberFormatException{
     	if(message[1].equals("ok")) {
     		lobby.changePanel(lobby);
     		lobby.repaint();
@@ -396,7 +426,7 @@ public class ClientSocket extends Thread {
 	            Thread.sleep(100);
 	        } catch (IOException | InterruptedException e) {
 	            if (running) {
-	                System.err.println("Error during communication: " + e.getMessage());
+	               // System.err.println("Error during communication: " + e.getMessage());
 	            	running = false;
 	            }
 	        }

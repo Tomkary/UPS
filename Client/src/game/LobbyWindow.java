@@ -298,7 +298,7 @@ public class LobbyWindow extends JPanel {
 	        
 	      //darw text
 	         //String text = "PAUSED";
-	         int fontSize = Math.min(pauseWidth, pauseHeight) / 20;
+	         int fontSize = Math.min(pauseWidth, pauseHeight) / 10;
 	         g2d.setFont(new Font("SansSerif", Font.BOLD, fontSize));
 	         FontMetrics fm = g2d.getFontMetrics();
 	         int textX = pauseX + ((pauseWidth - fm.stringWidth(text)) / 2);

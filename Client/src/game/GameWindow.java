@@ -241,8 +241,14 @@ public class GameWindow extends JPanel{
     public void updatePlayer(int id, int cards, int state) {
     	for(int i = 0; i < players.size(); i++) {
     		if(id == players.get(i).getId()) {
-    			players.get(i).setCardCount(cards);
-    			players.get(i).setStatus(state);
+    			if(cards >= 0 && cards <= 32) {
+    				players.get(i).setCardCount(cards);
+    			}
+    			if(state >= 1 && state <= 4) {
+    				players.get(i).setStatus(state);
+    			}
+    			//players.get(i).setCardCount(cards);
+    			//players.get(i).setStatus(state);
     			return;
     		}
     	}
@@ -255,7 +261,14 @@ public class GameWindow extends JPanel{
     public void statusChange(int status, int color, int next, String card) {
     	this.state = status;
     	this.newColor = color;
-    	nextPlayer = next;
+    	for (int i = 0; i < players.size(); i++) {
+    		Player player = players.get(i);
+            if(player.getId() == next) {
+            	nextPlayer = next;
+            	break;
+            }
+        }
+    	//nextPlayer = next;
     	playedCard.setName(card);
     	
     	for (int i = 0; i < players.size(); i++) {
@@ -355,7 +368,22 @@ public class GameWindow extends JPanel{
 
 	public void createCards(String[] cards) {
     	for (int i = 0; i < cards.length; i++) {
-    		this.cards.add(new Card(cards[i],0,0,-100,-100));
+    		Card card = new Card(cards[i],0,0,-100,-100);
+    		String name = card.getName();
+    		try {
+	    		if(Integer.parseInt(name.substring(0, 1)) < 1 || Integer.valueOf(name.substring(0, 1)) > 4) {
+	        		System.err.println("Error: Wrong format!");
+	        		continue;
+	        	}
+	        	if(Integer.valueOf(name.substring(2, 3)) < 1 || Integer.valueOf(name.substring(2, 3)) > 8) {
+	        		System.err.println("Error: Wrong format!");
+	        		continue;
+	        	}
+    		} catch (NumberFormatException e) {
+    			System.err.println("Error: Wrong format!");
+        		continue;
+    		}
+    		this.cards.add(card);
     	}
 	}
     
@@ -456,6 +484,7 @@ public class GameWindow extends JPanel{
             drawDisconnect(g, "opponent reconnecting");
         }
         else if(reconnect) {
+        	drawTable(g);
         	listPlayers(g);
         	drawReconnect(g, "Reconnecting");
         }
@@ -829,7 +858,7 @@ public class GameWindow extends JPanel{
 	        
 	      //darw text
 	         //String text = "PAUSED";
-	         int fontSize = Math.min(pauseWidth, pauseHeight) / 20;
+	         int fontSize = Math.min(pauseWidth, pauseHeight) / 5;
 	         g2d.setFont(new Font("SansSerif", Font.BOLD, fontSize));
 	         FontMetrics fm = g2d.getFontMetrics();
 	         int textX = pauseX + ((pauseWidth - fm.stringWidth(text)) / 2);
