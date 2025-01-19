@@ -31,12 +31,19 @@ public class ClientSocket extends Thread {
 	            running = true;
 	            end = false;
 	            System.out.println("Connected to the server at " + serverIp + ":" + serverPort);
+	            startIt();
         	}
         	catch(NoRouteToHostException | ConnectException e) {
         		//socket = null;
         		System.out.println("Reconecting.");
         	}
         }
+    }
+    
+    public void startIt() {
+    	if(!this.isAlive()) {
+			this.start();
+		}
     }
 
     public synchronized void disconnect() throws IOException {
@@ -54,7 +61,7 @@ public class ClientSocket extends Thread {
     public synchronized void sendMessage(String message) {
         if (out != null) {
             out.println(message);
-            /System.out.println("Sent: " + message);
+            //System.out.println("Sent: " + message);
         } else {
             System.out.println("Cannot send message. Not connected to the server.");
         }
@@ -409,6 +416,15 @@ public class ClientSocket extends Thread {
 
     @Override
     public void run() {
+    	/*
+    	while(!running) {
+	    	try {
+				this.connect();
+			} catch (IOException e1) {
+				login.connectionError();
+			}
+    	}
+    	*/
     	while(!end) {
     		//System.out.println("nekoncim");
 	        try {

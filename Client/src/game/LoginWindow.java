@@ -97,9 +97,6 @@ public class LoginWindow extends JPanel {
                 	client.setServerPort(Integer.valueOf(serverPort));
                 	try {
 						client.connect();
-						if(!client.isAlive()) {
-							client.start();
-						}
 					} catch (IOException e1) {
 						connectionError();
 					}
