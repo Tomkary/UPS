@@ -335,6 +335,7 @@ int handle_start(char* message, int* p_id){
     char* token = NULL;
     char player_id[3];
     char message_copy[256];
+    char* endptr;
 
     strncpy(message_copy, message, sizeof(message_copy) - 1);
     message_copy[sizeof(message_copy) - 1] = '\0';
@@ -357,7 +358,10 @@ int handle_start(char* message, int* p_id){
         return 0;
     }
 
-    *p_id = atoi(player_id);
+    *p_id = strtol(player_id, &endptr, 10);
+    if(*endptr != '\0'){
+        return 0;
+    }
 
     return 1;
 }
@@ -367,6 +371,7 @@ int handle_join(char* message, int* r_id, int* p_id){
     char room_id[3];
     char player_id[3];
     char message_copy[256];
+    char* endptr;
 
     strncpy(message_copy, message, sizeof(message_copy) - 1);
     message_copy[sizeof(message_copy) - 1] = '\0';
@@ -398,8 +403,15 @@ int handle_join(char* message, int* r_id, int* p_id){
             //pthread_mutex_unlock(&room_mutex);
             //return NULL;
 
-    *r_id = atoi(room_id);
-    *p_id = atoi(player_id);
+    *r_id = strtol(room_id, &endptr, 10);
+    if(*endptr != '\0'){
+        return 0;
+    }
+
+    *p_id = strtol(player_id, &endptr, 10);
+    if(*endptr != '\0'){
+        return 0;
+    }
     //printf("%d\n", atoi(room_id));
 
     //join(atoi(room_id));
@@ -409,9 +421,10 @@ int handle_join(char* message, int* r_id, int* p_id){
 }
 
 int handle_rejoin(char* message, int* p_id){
-char* token = NULL;
+    char* token = NULL;
     char player_id[3];
     char message_copy[256];
+    char* endptr;
 
     strncpy(message_copy, message, sizeof(message_copy) - 1);
     message_copy[sizeof(message_copy) - 1] = '\0';
@@ -432,7 +445,10 @@ char* token = NULL;
         return 0;
     }
 
-    *p_id = atoi(player_id);
+    *p_id = strtol(player_id, &endptr, 10);
+    if(*endptr != '\0'){
+        return 0;
+    }
 
     return 1;
 }
@@ -468,6 +484,7 @@ int handle_leave(char* message, int* p_id){
     char* token = NULL;
     char player_id[3];
     char message_copy[256];
+    char* endptr;
 
     strncpy(message_copy, message, sizeof(message_copy) - 1);
     message_copy[sizeof(message_copy) - 1] = '\0';
@@ -491,7 +508,10 @@ int handle_leave(char* message, int* p_id){
         return 0;
     }
 
-    *p_id = atoi(player_id);
+    *p_id = strtol(player_id, &endptr, 10);
+    if(*endptr != '\0'){
+        return 0;
+    }
     //leave(atoi(player_id));
     //respond_leave();
 
@@ -550,6 +570,7 @@ int handle_taking(char* message, int* p_id){
     char* token = NULL;
     char player_id[4];
     char message_copy[256];
+    char* endptr;
 
     strncpy(message_copy, message, sizeof(message_copy) - 1);
     message_copy[sizeof(message_copy) - 1] = '\0';
@@ -572,7 +593,10 @@ int handle_taking(char* message, int* p_id){
         return 0;
     }
 
-    *p_id = atoi(player_id);
+    *p_id = strtol(player_id, &endptr, 10);
+    if(*endptr != '\0'){
+        return 0;
+    }
 
     //take(atoi(player_id));
     //respond_take();
@@ -584,6 +608,7 @@ int handle_staying(char* message, int* p_id){
     char* token = NULL;
     char player_id[4];
     char message_copy[256];
+    char* endptr;
 
     strncpy(message_copy, message, sizeof(message_copy) - 1);
     message_copy[sizeof(message_copy) - 1] = '\0';
@@ -606,8 +631,10 @@ int handle_staying(char* message, int* p_id){
         return 0;
     }
 
-    *p_id = atoi(player_id);
-
+    *p_id = strtol(player_id, &endptr, 10);
+    if(*endptr != '\0'){
+        return 0;
+    }
     //stay(atoi(player_id));
     //respond_stay();
 
@@ -620,6 +647,7 @@ int handle_playing(char* message, char card[], int* p_id, int* color){
     char color_change[2];
     //char* card = NULL;
     char message_copy[256];
+    char* endptr;
 
     strncpy(message_copy, message, sizeof(message_copy) - 1);
     message_copy[sizeof(message_copy) - 1] = '\0';
@@ -656,8 +684,15 @@ int handle_playing(char* message, char card[], int* p_id, int* color){
         return 0;
     }
 
-    *p_id = atoi(player_id);
-    *color = atoi(color_change);
+    *p_id = strtol(player_id, &endptr, 10);
+    if(*endptr != '\0'){
+        return 0;
+    }
+
+    *color = strtol(color_change, &endptr, 10);
+    if(*endptr != '\0'){
+        return 0;
+    }
 
     //play(card, atoi(color_change), atoi(player_id));
     //respond_play();
@@ -715,6 +750,7 @@ int handle_ping(char* message, int* p_id){
     char* token = NULL;
     char player_id[3];
     char message_copy[256];
+    char* endptr;
 
     strncpy(message_copy, message, sizeof(message_copy) - 1);
     message_copy[sizeof(message_copy) - 1] = '\0';
@@ -743,7 +779,10 @@ int handle_ping(char* message, int* p_id){
             return 0;
         }
 
-        *p_id = atoi(player_id);
+        *p_id = strtol(player_id, &endptr, 10);
+        if(*endptr != '\0'){
+            return 0;
+        }
 
         return 2;
     }

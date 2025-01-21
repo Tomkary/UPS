@@ -57,18 +57,20 @@ void* handle_ping_thread(void* arg){
          //printf("%ld\n", (now - plr->time));
          if((now - plr->time) > 4){
             plr->state = 3;
-            
-            Room* room = get_room(&Rooms, plr->room_id);
-            int count = 0;
-            for(int i = 0; i < MAX_PLAYERS; i++){
-                if(room->players[i].id != -1){
-                    count++;
+
+            if(plr->room_id >= 0){
+                Room* room = get_room(&Rooms, plr->room_id);
+                int count = 0;
+                for(int i = 0; i < MAX_PLAYERS; i++){
+                    if(room->players[i].id != -1){
+                        count++;
+                    }
+                    if(room->players[i].id == plr->id){
+                        room->players[i].state = 3;
+                    }
                 }
-                if(room->players[i].id == plr->id){
-                    room->players[i].state = 3;
-                }
+                inform_status(room, count);
             }
-            inform_status(room, count);
             
          }
          if((now - plr->time) > 45){
@@ -149,8 +151,13 @@ void* handle_client(void *arg) {
             //printf("re1\n");
 
             if(handle_rejoin(buffer, &player_id)){
+                if(player_id < 0 || player_id > get_player_list_size(&Players)){
+                    write(client_socket, "dis|ok|\n", 9);
+                    close(client_socket);
+                    return NULL;
+                }
                 player = get_player(&Players, player_id);
-                time(&player->time);
+                //time(&player->time);
                 player->responded = 1;
                 player->state = 1;
                 player->socket = client_socket;
@@ -187,6 +194,16 @@ void* handle_client(void *arg) {
                     infrom_lobby();
                     //break;
                 }
+/*
+                long int now;
+                time(&now);
+                if(now - player->time > 46){
+                    printf("id> %d", player->id);
+                    pthread_create(&player->ping, NULL, handle_ping_thread, &player->id);
+                    pthread_detach(player->ping);
+                }
+*/
+                time(&player->time);
 
             }else{
                 write(client_socket, "dis|ok|\n", 9);
@@ -243,6 +260,12 @@ void* handle_client(void *arg) {
                 return NULL;
             }
 
+            if(player_id < 0 || player_id > get_player_list_size(&Players)){
+                    write(client_socket, "dis|ok|\n", 9);
+                    close(client_socket);
+                    return NULL;
+            }
+
             //check valid room id
             if (room_id >= 0 && room_id <= get_room_list_size(&Rooms)) {
                 Room* room = get_room(&Rooms, room_id);
@@ -293,6 +316,12 @@ void* handle_client(void *arg) {
                 write(client_socket, "leave|err|10|\n", 15);
                 close(client_socket);
                 return NULL;
+            }
+
+            if(player_id < 0 || player_id > get_player_list_size(&Players)){
+                    write(client_socket, "dis|ok|\n", 9);
+                    close(client_socket);
+                    return NULL;
             }
 
             //check if in any room
@@ -360,6 +389,12 @@ void* handle_client(void *arg) {
                 return NULL;
             }
 
+            if(player_id < 0 || player_id > get_player_list_size(&Players)){
+                    write(client_socket, "dis|ok|\n", 9);
+                    close(client_socket);
+                    return NULL;
+            }
+
             //check if player in room
             Room* room;           
             int room_count = get_room_list_size(&Rooms);
@@ -416,6 +451,12 @@ void* handle_client(void *arg) {
                 write(client_socket, "turn|err|10|\n", 14);
                 close(client_socket);
                 return NULL;
+            }
+
+            if(player_id < 0 || player_id > get_player_list_size(&Players)){
+                    write(client_socket, "dis|ok|\n", 9);
+                    close(client_socket);
+                    return NULL;
             }
 
             int found = 0;
@@ -518,6 +559,12 @@ void* handle_client(void *arg) {
             int player_id;
             int ping_val = handle_ping(buffer, &player_id);
             player* player;
+
+            if(player_id < 0 || player_id > get_player_list_size(&Players)){
+                    write(client_socket, "dis|ok|\n", 9);
+                    close(client_socket);
+                    return NULL;
+            }
 
             if(ping_val == 1){
                 player = get_player(&Players, player_id);
