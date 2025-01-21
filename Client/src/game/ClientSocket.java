@@ -6,6 +6,7 @@ import java.net.*;
 public class ClientSocket extends Thread {
     private String serverIp;
     private int serverPort;
+    private String playerName;
     private Socket socket;
     private PrintWriter out;
     private BufferedReader in;
@@ -16,6 +17,8 @@ public class ClientSocket extends Thread {
     private GameWindow game;
     private boolean pingRec = true;
     private long time = 0;
+    private boolean connect = false;
+    private Thread pthread;
 
     public ClientSocket(String serverIp, int serverPort) {
         this.serverIp = serverIp;
@@ -31,7 +34,18 @@ public class ClientSocket extends Thread {
 	            running = true;
 	            end = false;
 	            System.out.println("Connected to the server at " + serverIp + ":" + serverPort);
-	            startIt();
+	            if(lobby.getMyId() == -1) {
+	            	sendMessage("connect|"+playerName+"|"+'\n');
+	            }
+	            else {
+	            	sendMessage("rejoin|"+lobby.getMyId()+"|\n");
+	            	if(System.currentTimeMillis() - time >= 61000) {
+		            	pingRec = true;
+		            	time = System.currentTimeMillis();
+		            	startPing(lobby.getMyId());
+	            	}
+	            }
+	            //startIt();
         	}
         	catch(NoRouteToHostException | ConnectException e) {
         		//socket = null;
@@ -44,6 +58,14 @@ public class ClientSocket extends Thread {
     	if(!this.isAlive()) {
 			this.start();
 		}
+    }
+    
+    public void setPlayerName(String name) {
+    	this.playerName = name;
+    }
+    
+    public void setConnect(boolean connect) {
+    	this.connect = connect;
     }
 
     public synchronized void disconnect() throws IOException {
@@ -61,14 +83,14 @@ public class ClientSocket extends Thread {
     public synchronized void sendMessage(String message) {
         if (out != null) {
             out.println(message);
-            //System.out.println("Sent: " + message);
+            System.out.println("Sent: " + message);
         } else {
             System.out.println("Cannot send message. Not connected to the server.");
         }
     }
 
     public void startPing(int id) {
-        new Thread(() -> {
+       new Thread(() -> {
         	time = System.currentTimeMillis();
             while (!end) {
                 try {
@@ -98,7 +120,8 @@ public class ClientSocket extends Thread {
                 		if(System.currentTimeMillis() - time >= 60000) {
                 			System.err.println("konec");
                 			running = false;
-                			end = true;
+                			//end = true;
+                			lobby.changePanel(login);
                 			try {
 								disconnect();
 							} catch (IOException e) {
@@ -124,7 +147,7 @@ public class ClientSocket extends Thread {
     public void receiveMessage(String message) {
     	//System.out.println(message);
     	message = message.trim();
-    	//System.out.println(message);
+    	System.out.println(message);
         if (message.contains("|")) {
         	
             String[] parts = message.split("\\|");
@@ -190,10 +213,12 @@ public class ClientSocket extends Thread {
     	if(message[1].equals("ok")) {
     		pingRec = true;
     		if(game.getStarted()) {
+    			lobby.changePanel(game);
     			game.reconnected();
     		}
     		else {
     			lobby.reconnected();
+    			lobby.changePanel(lobby);
     		}
     		//lobby.changePanel(game);
     		//game.repaint();
@@ -427,6 +452,14 @@ public class ClientSocket extends Thread {
     	*/
     	while(!end) {
     		//System.out.println("nekoncim");
+    		if(connect) {
+    			try {
+					connect();
+				} catch (IOException e) {
+					login.connectionError();
+				}
+    			connect = false;
+    		}
 	        try {
 	            while (running) {
 	                if (in != null) {

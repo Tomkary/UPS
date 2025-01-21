@@ -95,14 +95,20 @@ public class LoginWindow extends JPanel {
                 	String serverPort = port.getText();
                 	client.setServerIp(ipAdd);
                 	client.setServerPort(Integer.valueOf(serverPort));
-                	try {
-						client.connect();
-					} catch (IOException e1) {
-						connectionError();
-					}
+                	
+//                	try {
+//						client.connect();
+//					} catch (IOException e1) {
+//						connectionError();
+//					}
+                	
                 	//client.start();
                 	String playerName = nick.getText();
-                	client.sendMessage("connect|"+playerName+"|"+'\n');
+                	client.setPlayerName(playerName);
+                	
+                	client.setConnect(true);
+                	client.startIt();
+                	//client.sendMessage("connect|"+playerName+"|"+'\n');
                 }
             }
         });

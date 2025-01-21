@@ -27,7 +27,7 @@ public class LobbyWindow extends JPanel {
     
     private ClientSocket client;
     
-    private int myId = 0;
+    private int myId = -1;
     
     private boolean reconnect = false;
 
@@ -132,12 +132,18 @@ public class LobbyWindow extends JPanel {
 	public void disconnected() {
     	//JOptionPane.showMessageDialog(LobbyWindow.this,"Lost connection to the server, trying to reconnect", "Disconnected", JOptionPane.ERROR_MESSAGE);
     	reconnect = true;
+    	remove(scrollPane); 
+        remove(joinButton); 
+        remove(createButton);
     	repaint();
     }
 	
 	public void reconnected() {
     	//JOptionPane.showMessageDialog(LobbyWindow.this,"Reconnect successful", "Reconnect", JOptionPane.INFORMATION_MESSAGE);
 		reconnect = false;
+		add(scrollPane); 
+        add(joinButton); 
+        add(createButton);
     	repaint();
     }
 	
@@ -194,6 +200,7 @@ public class LobbyWindow extends JPanel {
         }
 
         if(reconnect) {
+        	mainFrame.getContentPane().removeAll();
         	drawSign(g, "Reconnecting");
         }
         else {

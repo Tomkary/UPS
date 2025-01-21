@@ -65,7 +65,7 @@ public class GameWindow extends JPanel{
 	
 	private boolean started = false;
 	
-	private int myId = 0;
+	private int myId = -1;
 	
 	private int nextPlayer;
 
@@ -343,7 +343,7 @@ public class GameWindow extends JPanel{
 
     	started = false;
     	
-    	myId = 0;
+    	myId = -1;
     	
     	nextPlayer = -1;
 
